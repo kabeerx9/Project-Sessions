@@ -180,7 +180,7 @@ let sessions = [
 - [x] Button actions
 - [x] Mutating arrays
 - [x] Local UI state
-- [ ] Simple form state
+- [x] Simple form state
 
 ### Project Implementation
 
@@ -212,7 +212,7 @@ Swift structs are commonly used for app data. For this app, a `ProjectSession` m
 - [x] `struct`
 - [x] Stored properties
 - [x] `UUID`
-- [ ] Optional values
+- [x] Optional values
 - [x] Arrays of models
 - [x] Separating models from views
 
@@ -292,26 +292,26 @@ This section comes early because the first big product milestone is making sessi
 
 ### Concepts To Learn
 
-- [ ] `UserDefaults`
-- [ ] Saving data locally
-- [ ] Loading data at app startup
-- [ ] Choosing storage keys
+- [x] `UserDefaults`
+- [x] Saving data locally
+- [x] Loading data at app startup
+- [x] Choosing storage keys
 - [ ] When not to use `UserDefaults`
 
 ### Project Implementation
 
-- [ ] Save sessions to `UserDefaults`
-- [ ] Load sessions when the app opens
-- [ ] Persist create and delete actions
-- [ ] Confirm sessions survive app restart
+- [x] Save sessions to `UserDefaults`
+- [x] Load sessions when the app opens
+- [x] Persist create and delete actions
+- [x] Confirm sessions survive app restart
 
 ### First Persistence Milestone
 
 By the end of this section, the app should be able to show sample sessions such as:
 
-- [ ] Fantasy App
-- [ ] Dashboard
-- [ ] SaaS
+- [x] Fantasy App
+- [x] Dashboard
+- [x] SaaS
 
 Those sessions should survive quitting and reopening the app.
 
@@ -333,23 +333,23 @@ Forms let the user create and edit data. In this app, forms are needed for creat
 
 ### Concepts To Learn
 
-- [ ] `Form`
-- [ ] `TextField`
-- [ ] `Button`
+- [x] `Form`
+- [x] `TextField`
+- [x] `Button`
 - [ ] `Toggle`
 - [ ] `Picker`
-- [ ] Bindings with `$`
+- [x] Bindings with `$`
 - [ ] `@Binding`
-- [ ] Sheet presentation
+- [x] Sheet presentation
 
 ### Project Implementation
 
-- [ ] Create a new session form
-- [ ] Edit an existing session
-- [ ] Add and remove URLs
-- [ ] Save form values into app state
-- [ ] Persist form changes to `UserDefaults`
-- [ ] Cancel editing
+- [x] Create a new session form
+- [x] Edit an existing session
+- [x] Add and remove URLs
+- [x] Save form values into app state
+- [x] Persist form changes to `UserDefaults`
+- [x] Cancel editing
 
 ### Example Exercise
 
@@ -596,6 +596,6 @@ Follow this order unless there is a specific reason to jump ahead:
 
 ## Current Next Step
 
-- [ ] Save sessions to `UserDefaults`
-- [ ] Load sessions when the app opens
-- [ ] Confirm sessions survive app restart
+- [x] Add and remove URLs in the form
+- [x] Reuse form concepts for editing
+- [x] Save edited values back into the sessions array
