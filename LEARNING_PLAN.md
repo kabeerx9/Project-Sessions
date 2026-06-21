@@ -1,0 +1,602 @@
+# Project Sessions Learning Plan
+
+This file is the learning and implementation roadmap for Project Sessions.
+
+The goal is to learn Swift, SwiftUI, and macOS app development by building a real local-first macOS app for restoring developer project workspaces.
+
+## Product Vision
+
+Project Sessions is a native macOS application for developers who work across multiple projects and frequently switch contexts.
+
+The app should reduce repetitive setup work when switching projects. Instead of manually opening browser tabs, Cursor workspaces, terminal commands, documentation pages, and localhost URLs, a developer should be able to restore a project workspace with one action.
+
+The first version should stay simple, local-only, and focused on real workflow value.
+
+## MVP Scope
+
+The first version should support:
+
+- [ ] Create project sessions
+- [ ] Edit project sessions
+- [ ] Delete project sessions
+- [ ] Store a session name
+- [ ] Store browser URLs
+- [ ] Store a repository path
+- [ ] Launch URLs in a browser
+- [ ] Open the repository in Cursor
+- [ ] Persist sessions locally
+
+Out of scope for MVP:
+
+- [ ] AI features
+- [ ] Cloud sync
+- [ ] Team features
+- [ ] Pull request integrations
+- [ ] Terminal process management
+- [ ] Automatic service health checks
+
+## Learning Principles
+
+- Learn one concept at a time.
+- Implement a small piece after each concept.
+- Prefer native macOS behavior over web-app patterns.
+- Prefer simple SwiftUI before introducing AppKit.
+- Avoid architecture patterns until the app needs them.
+- Keep each step connected to Project Sessions.
+- Prefer early visible progress over perfect structure.
+
+## Learning Order
+
+1. SwiftUI fundamentals
+2. Lists and collections
+3. State
+4. Struct models
+5. Codable
+6. UserDefaults
+7. Forms and editing
+8. Navigation
+9. Launching apps and URLs with NSWorkspace
+10. Process API
+11. macOS app polish
+12. MenuBarExtra
+13. AppKit only when needed
+
+## Section 1: SwiftUI Fundamentals
+
+SwiftUI views are closest to React function components. A view describes what the UI should look like for the current state.
+
+### React Equivalent
+
+- `View` = component contract
+- `body` = render output
+- `some View` = opaque return type for UI
+- `VStack` = vertical flex column
+- `HStack` = horizontal flex row
+- `Spacer` = flexible empty space
+- Modifiers = chained styling and behavior helpers
+
+### Concepts To Learn
+
+- [ ] `View`
+- [ ] `body`
+- [ ] `some View`
+- [ ] `Text`
+- [ ] `Image`
+- [ ] `VStack`
+- [ ] `HStack`
+- [ ] `Spacer`
+- [ ] `.padding()`
+- [ ] `.frame()`
+- [ ] `.font()`
+- [ ] `.foregroundStyle()`
+- [ ] SwiftUI modifiers
+- [ ] Xcode previews
+
+### Project Implementation
+
+- [ ] Replace the default "Hello, world!" screen
+- [ ] Create a basic Project Sessions home screen
+- [ ] Add a title
+- [ ] Add a short empty state
+- [ ] Add a placeholder button for creating a session
+
+### Example Exercise
+
+```swift
+struct ContentView: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Project Sessions")
+                .font(.largeTitle)
+
+            Text("Restore your development workspace.")
+                .foregroundStyle(.secondary)
+        }
+        .padding()
+    }
+}
+```
+
+## Section 2: Lists and Collections
+
+A SwiftUI `List` is similar to rendering an array with `.map()` in React, but it also gives native macOS list behavior.
+
+### React Equivalent
+
+- `Array` = `ProjectSession[]`
+- `List` = native list container
+- `ForEach` = `.map()`
+- `Identifiable` = stable React `key`
+- Empty state = conditional render when array is empty
+
+### Concepts To Learn
+
+- [ ] Arrays in Swift
+- [ ] `List`
+- [ ] `ForEach`
+- [ ] `Identifiable`
+- [ ] Static list rows
+- [ ] Dynamic list rows
+- [ ] Empty states
+
+### Project Implementation
+
+- [ ] Show a list of project sessions
+- [ ] Create temporary hardcoded sessions
+- [ ] Render each session name
+- [ ] Render a short summary of URLs or repository path
+- [ ] Show an empty state when no sessions exist
+
+### Example Exercise
+
+```swift
+struct ProjectSession: Identifiable {
+    let id = UUID()
+    let name: String
+}
+
+let sessions = [
+    ProjectSession(name: "Fantasy App"),
+    ProjectSession(name: "Project Sessions")
+]
+```
+
+## Section 3: State
+
+`@State` is roughly equivalent to `useState`. It stores local view state and causes the view to update when the value changes.
+
+### React Equivalent
+
+- `@State` = `useState`
+- `Button` action = `onClick`
+- State-driven rendering = JSX changing when state changes
+- Mutating an array = `setSessions(...)`
+- `private` state = component-local state
+
+### Concepts To Learn
+
+- [ ] `@State`
+- [ ] State-driven rendering
+- [ ] Button actions
+- [ ] Mutating arrays
+- [ ] Local UI state
+- [ ] Simple form state
+
+### Project Implementation
+
+- [ ] Store sessions in local `@State`
+- [ ] Add a button that creates a temporary session
+- [ ] Add a delete action
+- [ ] Add selected session state
+
+### Example Exercise
+
+```swift
+@State private var sessions: [ProjectSession] = []
+```
+
+## Section 4: Struct Models
+
+Swift structs are commonly used for app data. For this app, a `ProjectSession` model will represent one saved workspace.
+
+### React Equivalent
+
+- `struct ProjectSession` = TypeScript `type` or `interface` plus value behavior
+- Stored properties = object fields
+- `UUID` = stable id for rendering and persistence
+- Optional value = `string | undefined`, but checked by the compiler
+- Model file = shared TypeScript model file
+
+### Concepts To Learn
+
+- [ ] `struct`
+- [ ] Stored properties
+- [ ] `UUID`
+- [ ] Optional values
+- [ ] Arrays of models
+- [ ] Separating models from views
+
+### Project Implementation
+
+- [ ] Create a `ProjectSession` model
+- [ ] Add `name`
+- [ ] Add `browser`
+- [ ] Add `urls`
+- [ ] Add `repositoryPath`
+- [ ] Move the model into its own file
+
+### Target Model
+
+```swift
+struct ProjectSession: Identifiable {
+    let id: UUID
+    var name: String
+    var browser: String
+    var urls: [String]
+    var repositoryPath: String
+}
+```
+
+## Section 5: Codable
+
+`Codable` is Swift's built-in way to convert data models to and from JSON. It is similar to serializing typed objects in TypeScript, but Swift can synthesize a lot of the conversion automatically.
+
+### React Equivalent
+
+- `Codable` = typed JSON serialize and parse support
+- `Encodable` = object to JSON
+- `Decodable` = JSON to object
+- `JSONEncoder` = `JSON.stringify` with Swift types
+- `JSONDecoder` = `JSON.parse` with Swift types
+
+### Concepts To Learn
+
+- [ ] `Codable`
+- [ ] `Encodable`
+- [ ] `Decodable`
+- [ ] JSON encoding
+- [ ] JSON decoding
+- [ ] Error handling basics
+
+### Project Implementation
+
+- [ ] Make `ProjectSession` conform to `Codable`
+- [ ] Encode sessions to JSON
+- [ ] Decode sessions from JSON
+- [ ] Handle invalid saved data simply
+
+### Target Model Update
+
+```swift
+struct ProjectSession: Identifiable, Codable {
+    var id: UUID
+    var name: String
+    var browser: String
+    var urls: [String]
+    var repositoryPath: String
+}
+```
+
+## Section 6: UserDefaults and Local Persistence
+
+`UserDefaults` is a simple local key-value store. For the MVP, it is enough for saving a small list of sessions.
+
+This section comes early because the first big product milestone is making sessions survive app restarts.
+
+### React Equivalent
+
+- `UserDefaults` = `localStorage`, but native to Apple platforms
+- Storage key = `localStorage` key
+- Load on app start = initial state hydration
+- Save after changes = persist state after mutation
+
+### Concepts To Learn
+
+- [ ] `UserDefaults`
+- [ ] Saving data locally
+- [ ] Loading data at app startup
+- [ ] Choosing storage keys
+- [ ] When not to use `UserDefaults`
+
+### Project Implementation
+
+- [ ] Save sessions to `UserDefaults`
+- [ ] Load sessions when the app opens
+- [ ] Persist create and delete actions
+- [ ] Confirm sessions survive app restart
+
+### First Persistence Milestone
+
+By the end of this section, the app should be able to show sample sessions such as:
+
+- [ ] Fantasy App
+- [ ] Dashboard
+- [ ] SaaS
+
+Those sessions should survive quitting and reopening the app.
+
+Future note:
+
+- [ ] Consider moving to JSON files or SwiftData after the MVP if sessions become more complex
+
+## Section 7: Forms and Editing
+
+Forms let the user create and edit data. In this app, forms are needed for creating and editing project sessions after the basic persistence loop works.
+
+### React Equivalent
+
+- `Form` = form layout component
+- `TextField` = controlled input
+- `$name` binding = `value` plus `onChange`
+- `@Binding` = passing state setter behavior into a child component
+- Sheet = modal
+
+### Concepts To Learn
+
+- [ ] `Form`
+- [ ] `TextField`
+- [ ] `Button`
+- [ ] `Toggle`
+- [ ] `Picker`
+- [ ] Bindings with `$`
+- [ ] `@Binding`
+- [ ] Sheet presentation
+
+### Project Implementation
+
+- [ ] Create a new session form
+- [ ] Edit an existing session
+- [ ] Add and remove URLs
+- [ ] Save form values into app state
+- [ ] Persist form changes to `UserDefaults`
+- [ ] Cancel editing
+
+### Example Exercise
+
+```swift
+TextField("Session name", text: $name)
+```
+
+## Section 8: Navigation
+
+Navigation in SwiftUI is similar to moving between screens or routes in React, but it is built into the native UI framework.
+
+### React Equivalent
+
+- `NavigationSplitView` = sidebar layout with a detail route
+- `NavigationStack` = stacked screen navigation
+- Selection state = selected item id
+- Detail view = route/page for selected data
+- Fallback detail = empty route state
+
+### Concepts To Learn
+
+- [ ] `NavigationSplitView`
+- [ ] `NavigationStack`
+- [ ] Sidebar layouts
+- [ ] Detail views
+- [ ] Selection state
+- [ ] macOS navigation conventions
+
+### Project Implementation
+
+- [ ] Create a sidebar with all project sessions
+- [ ] Create a detail view for the selected session
+- [ ] Show session details on the right side
+- [ ] Add a fallback detail view when nothing is selected
+
+### Example Exercise
+
+```swift
+NavigationSplitView {
+    List(sessions) { session in
+        Text(session.name)
+    }
+} detail: {
+    Text("Select a session")
+}
+```
+
+## Section 9: Launching Apps and URLs with NSWorkspace
+
+macOS apps can open URLs, files, folders, and other apps. This is where Project Sessions starts becoming useful.
+
+### React Equivalent
+
+- `NSWorkspace.shared.open(url)` = opening an external URL from the browser
+- File URL = local file or folder path
+- Bundle identifier = app package id
+- Launch failure = rejected promise or failed side effect
+
+### Concepts To Learn
+
+- [ ] `NSWorkspace`
+- [ ] Opening URLs
+- [ ] Opening local folders
+- [ ] Launching apps
+- [ ] Basic error handling
+- [ ] App bundle identifiers
+- [ ] File paths and `URL(fileURLWithPath:)`
+
+### Project Implementation
+
+- [ ] Launch all URLs for a session
+- [ ] Open a repository path in Finder
+- [ ] Open a repository path in Cursor
+- [ ] Add a "Launch Session" button
+- [ ] Show a simple failure message if something cannot be opened
+
+### Example Exercise
+
+```swift
+if let url = URL(string: "https://github.com") {
+    NSWorkspace.shared.open(url)
+}
+```
+
+## Section 10: Process API
+
+The Process API is for starting and controlling command-line programs. It should come after `NSWorkspace` because launching URLs and apps is enough for the MVP.
+
+### React Equivalent
+
+- `Process` = Node's `child_process`
+- Executable URL = command path
+- Arguments = command arguments array
+- Environment = process environment variables
+- Termination status = exit code
+
+### Concepts To Learn
+
+- [ ] `Process`
+- [ ] Executable paths
+- [ ] Arguments
+- [ ] Working directories
+- [ ] Environment variables
+- [ ] Reading output later
+- [ ] Knowing when not to run shell commands from the app
+
+### Project Implementation
+
+- [ ] Explore how a command could be launched
+- [ ] Defer automatic terminal command execution until after the MVP
+- [ ] Decide whether terminal control belongs in the app
+
+## Section 11: macOS App Polish
+
+After the MVP works, improve how the app feels as a native macOS application.
+
+### React Equivalent
+
+- Toolbar = app-level action bar
+- Keyboard shortcut = global or scoped hotkey
+- Alert = native confirmation dialog
+- Menu command = desktop app menu item
+- App icon = favicon plus installed app identity
+
+### Concepts To Learn
+
+- [ ] Window sizing
+- [ ] Toolbar buttons
+- [ ] Keyboard shortcuts
+- [ ] Menus
+- [ ] Confirmation dialogs
+- [ ] Native alerts
+- [ ] App icon basics
+
+### Project Implementation
+
+- [ ] Add toolbar actions
+- [ ] Add keyboard shortcut for creating a session
+- [ ] Add delete confirmation
+- [ ] Improve empty states
+- [ ] Add app icon
+
+## Section 12: MenuBarExtra
+
+`MenuBarExtra` allows a macOS app to live in the menu bar. This can make Project Sessions feel like a fast project launcher.
+
+### React Equivalent
+
+- `MenuBarExtra` = persistent system-level mini UI
+- Menu item action = compact command button
+- Shared app state = state used by multiple views
+- Main window = full editing surface
+
+### Concepts To Learn
+
+- [ ] `MenuBarExtra`
+- [ ] Menu bar app behavior
+- [ ] Commands inside a menu
+- [ ] Sharing state between windows and menu bar
+
+### Project Implementation
+
+- [ ] Add a menu bar item
+- [ ] List saved sessions in the menu bar
+- [ ] Launch a session from the menu bar
+- [ ] Keep the main window available for editing
+
+## Section 13: AppKit Only When Needed
+
+SwiftUI should be the default. AppKit should be introduced only when SwiftUI cannot cleanly solve a macOS-specific problem.
+
+### React Equivalent
+
+- AppKit = lower-level native UI framework
+- SwiftUI wrapping AppKit = React component wrapping an imperative library
+- `NSOpenPanel` = native file or folder picker
+- Advanced window control = browser APIs that React does not own directly
+
+### Concepts To Learn Later
+
+- [ ] What AppKit is
+- [ ] When SwiftUI wraps AppKit
+- [ ] `NSOpenPanel`
+- [ ] Choosing folders
+- [ ] Advanced window behavior
+
+### Project Implementation
+
+- [ ] Use `NSOpenPanel` to select a repository folder
+- [ ] Store the selected path in a session
+- [ ] Avoid AppKit for normal layout and forms
+
+## Future Features
+
+These should wait until the MVP is complete.
+
+### Session Restore
+
+- [ ] Browser profile support
+- [ ] Open multiple browser tabs
+- [ ] Open Cursor workspace
+- [ ] Open Ghostty windows
+- [ ] Run terminal commands
+
+### Session Health
+
+- [ ] Detect running local servers
+- [ ] Show browser status
+- [ ] Show frontend status
+- [ ] Show backend status
+- [ ] Show simulator status
+
+### Project Dashboard
+
+- [ ] Show current Git branch
+- [ ] Show uncommitted file count
+- [ ] Show open pull requests
+- [ ] Show running services
+
+### Workspace Shutdown
+
+- [ ] Stop project servers
+- [ ] Close project terminal windows
+- [ ] Close project browser windows
+
+## Suggested Implementation Order
+
+Follow this order unless there is a specific reason to jump ahead:
+
+1. Build a static home screen
+2. Render hardcoded sessions in a list
+3. Add local state
+4. Create the `ProjectSession` model
+5. Make the model `Codable`
+6. Save and load sample sessions with `UserDefaults`
+7. Build create and edit forms
+8. Add delete support
+9. Add navigation split view
+10. Launch URLs with `NSWorkspace`
+11. Open repository paths
+12. Open repositories in Cursor
+13. Add macOS polish
+14. Add menu bar support
+
+## Current Next Step
+
+- [ ] Learn SwiftUI `View`, `body`, `some View`, `VStack`, `HStack`, and `Spacer`
+- [ ] Replace the default `ContentView`
+- [ ] Build the first static Project Sessions screen
+
