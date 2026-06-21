@@ -77,28 +77,28 @@ SwiftUI views are closest to React function components. A view describes what th
 
 ### Concepts To Learn
 
-- [ ] `View`
-- [ ] `body`
-- [ ] `some View`
-- [ ] `Text`
-- [ ] `Image`
-- [ ] `VStack`
-- [ ] `HStack`
-- [ ] `Spacer`
-- [ ] `.padding()`
-- [ ] `.frame()`
-- [ ] `.font()`
-- [ ] `.foregroundStyle()`
-- [ ] SwiftUI modifiers
+- [x] `View`
+- [x] `body`
+- [x] `some View`
+- [x] `Text`
+- [x] `Image`
+- [x] `VStack`
+- [x] `HStack`
+- [x] `Spacer`
+- [x] `.padding()`
+- [x] `.frame()`
+- [x] `.font()`
+- [x] `.foregroundStyle()`
+- [x] SwiftUI modifiers
 - [ ] Xcode previews
 
 ### Project Implementation
 
-- [ ] Replace the default "Hello, world!" screen
-- [ ] Create a basic Project Sessions home screen
-- [ ] Add a title
-- [ ] Add a short empty state
-- [ ] Add a placeholder button for creating a session
+- [x] Replace the default "Hello, world!" screen
+- [x] Create a basic Project Sessions home screen
+- [x] Add a title
+- [x] Add a short empty state
+- [x] Add a placeholder button for creating a session
 
 ### Example Exercise
 
@@ -131,20 +131,20 @@ A SwiftUI `List` is similar to rendering an array with `.map()` in React, but it
 
 ### Concepts To Learn
 
-- [ ] Arrays in Swift
-- [ ] `List`
-- [ ] `ForEach`
-- [ ] `Identifiable`
-- [ ] Static list rows
-- [ ] Dynamic list rows
+- [x] Arrays in Swift
+- [x] `List`
+- [x] `ForEach`
+- [x] `Identifiable`
+- [x] Static list rows
+- [x] Dynamic list rows
 - [ ] Empty states
 
 ### Project Implementation
 
-- [ ] Show a list of project sessions
-- [ ] Create temporary hardcoded sessions
-- [ ] Render each session name
-- [ ] Render a short summary of URLs or repository path
+- [x] Show a list of project sessions
+- [x] Create temporary hardcoded sessions
+- [x] Render each session name
+- [x] Render a short summary of URLs or repository path
 - [ ] Show an empty state when no sessions exist
 
 ### Example Exercise
@@ -175,18 +175,18 @@ let sessions = [
 
 ### Concepts To Learn
 
-- [ ] `@State`
-- [ ] State-driven rendering
-- [ ] Button actions
-- [ ] Mutating arrays
-- [ ] Local UI state
+- [x] `@State`
+- [x] State-driven rendering
+- [x] Button actions
+- [x] Mutating arrays
+- [x] Local UI state
 - [ ] Simple form state
 
 ### Project Implementation
 
-- [ ] Store sessions in local `@State`
-- [ ] Add a button that creates a temporary session
-- [ ] Add a delete action
+- [x] Store sessions in local `@State`
+- [x] Add a button that creates a temporary session
+- [x] Add a delete action
 - [ ] Add selected session state
 
 ### Example Exercise
@@ -209,21 +209,21 @@ Swift structs are commonly used for app data. For this app, a `ProjectSession` m
 
 ### Concepts To Learn
 
-- [ ] `struct`
-- [ ] Stored properties
-- [ ] `UUID`
+- [x] `struct`
+- [x] Stored properties
+- [x] `UUID`
 - [ ] Optional values
-- [ ] Arrays of models
-- [ ] Separating models from views
+- [x] Arrays of models
+- [x] Separating models from views
 
 ### Project Implementation
 
-- [ ] Create a `ProjectSession` model
-- [ ] Add `name`
-- [ ] Add `browser`
-- [ ] Add `urls`
-- [ ] Add `repositoryPath`
-- [ ] Move the model into its own file
+- [x] Create a `ProjectSession` model
+- [x] Add `name`
+- [x] Add `browser`
+- [x] Add `urls`
+- [x] Add `repositoryPath`
+- [x] Move the model into its own file
 
 ### Target Model
 
@@ -251,19 +251,19 @@ struct ProjectSession: Identifiable {
 
 ### Concepts To Learn
 
-- [ ] `Codable`
-- [ ] `Encodable`
-- [ ] `Decodable`
-- [ ] JSON encoding
-- [ ] JSON decoding
-- [ ] Error handling basics
+- [x] `Codable`
+- [x] `Encodable`
+- [x] `Decodable`
+- [x] JSON encoding
+- [x] JSON decoding
+- [x] Error handling basics
 
 ### Project Implementation
 
-- [ ] Make `ProjectSession` conform to `Codable`
-- [ ] Encode sessions to JSON
-- [ ] Decode sessions from JSON
-- [ ] Handle invalid saved data simply
+- [x] Make `ProjectSession` conform to `Codable`
+- [x] Encode sessions to JSON
+- [x] Decode sessions from JSON
+- [x] Handle invalid saved data simply
 
 ### Target Model Update
 
@@ -596,7 +596,6 @@ Follow this order unless there is a specific reason to jump ahead:
 
 ## Current Next Step
 
-- [ ] Learn SwiftUI `View`, `body`, `some View`, `VStack`, `HStack`, and `Spacer`
-- [ ] Replace the default `ContentView`
-- [ ] Build the first static Project Sessions screen
-
+- [ ] Save sessions to `UserDefaults`
+- [ ] Load sessions when the app opens
+- [ ] Confirm sessions survive app restart
