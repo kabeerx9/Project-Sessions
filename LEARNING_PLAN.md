@@ -371,19 +371,19 @@ Navigation in SwiftUI is similar to moving between screens or routes in React, b
 
 ### Concepts To Learn
 
-- [ ] `NavigationSplitView`
+- [x] `NavigationSplitView`
 - [ ] `NavigationStack`
-- [ ] Sidebar layouts
-- [ ] Detail views
-- [ ] Selection state
-- [ ] macOS navigation conventions
+- [x] Sidebar layouts
+- [x] Detail views
+- [x] Selection state
+- [x] macOS navigation conventions
 
 ### Project Implementation
 
-- [ ] Create a sidebar with all project sessions
-- [ ] Create a detail view for the selected session
-- [ ] Show session details on the right side
-- [ ] Add a fallback detail view when nothing is selected
+- [x] Create a sidebar with all project sessions
+- [x] Create a detail view for the selected session
+- [x] Show session details on the right side
+- [x] Add a fallback detail view when nothing is selected
 
 ### Example Exercise
 
@@ -596,6 +596,6 @@ Follow this order unless there is a specific reason to jump ahead:
 
 ## Current Next Step
 
-- [x] Add and remove URLs in the form
-- [x] Reuse form concepts for editing
-- [x] Save edited values back into the sessions array
+- [ ] Learn `NSWorkspace`
+- [ ] Launch saved URLs for the selected session
+- [ ] Add a "Launch Session" button

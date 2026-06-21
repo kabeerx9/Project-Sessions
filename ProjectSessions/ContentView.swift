@@ -36,6 +36,7 @@ struct ContentView: View {
             repositoryPath: "~/Projects/saas"
         )
     ]
+    @State private var selectedSessionID: ProjectSession.ID?
     
     @State private var isShowingNewSessionForm = false
 
@@ -63,43 +64,29 @@ struct ContentView: View {
         newSessionURLDraft = ""
     }
     
-    private func addSession() {
-        sessions.append(
-            ProjectSession(
-                id: UUID(),
-                name: "New Session",
-                browser: "Chrome",
-                urls: [],
-                repositoryPath: "~/Projects/new-session"
-            )
-        )
-
-        saveSessions()
+    private var selectedSession: ProjectSession? {
+        sessions.first { $0.id == selectedSessionID }
     }
 
     private func deleteSession(_ session: ProjectSession) {
         sessions.removeAll { $0.id == session.id }
+        
+        if selectedSessionID == session.id {
+            selectedSessionID = nil
+        }
+        
         saveSessions()
     }
     
-    private func printSessionsJSON() {
-        do {
-            let data = try JSONEncoder().encode(sessions)
-            let json = String(data: data, encoding: .utf8) ?? ""
-            print(json)
-        } catch {
-            print("Failed to encode sessions: \(error)")
+    private func deleteSessions(at offsets: IndexSet) {
+        let deletedIDs = offsets.map { sessions[$0].id }
+        sessions.remove(atOffsets: offsets)
+        
+        if let selectedSessionID, deletedIDs.contains(selectedSessionID) {
+            self.selectedSessionID = nil
         }
-    }
-
-    private func testDecodeSessions() {
-        do {
-            let data = try JSONEncoder().encode(sessions)
-            let decodedSessions = try JSONDecoder().decode([ProjectSession].self, from: data)
-            print("Decoded \(decodedSessions.count) sessions")
-        } catch {
-            print("Failed to decode sessions: \(error)")
-        }
+        
+        saveSessions()
     }
     
     private func saveSessions() {
@@ -180,59 +167,122 @@ struct ContentView: View {
     
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
-            HStack {
-                VStack(alignment: .leading, spacing: 4) {
+        NavigationSplitView {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack {
                     Text("Project Sessions")
-                        .font(.largeTitle)
-
-                    Text("Restore your development workspace.")
-                        .foregroundStyle(.secondary)
+                        .font(.headline)
+                    
+                    Spacer()
+                    
+                    Button("Create") {
+                        isShowingNewSessionForm = true
+                    }
                 }
-
-                Spacer()
-
-                Button("Create Session") {
-                    isShowingNewSessionForm = true
+                .padding([.horizontal, .top])
+                
+                if sessions.isEmpty {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Image(systemName: "folder.badge.plus")
+                            .font(.title)
+                            .foregroundStyle(.secondary)
+                        
+                        Text("No sessions yet.")
+                            .font(.headline)
+                        
+                        Text("Create your first project session.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    .padding()
+                    
+                    Spacer()
+                } else {
+                    List(selection: $selectedSessionID) {
+                        ForEach(sessions) { session in
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(session.name)
+                                    .font(.headline)
+                                
+                                Text("\(session.browser) · \(session.urls.count) URLs")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                            .padding(.vertical, 4)
+                            .tag(session.id)
+                        }
+                        .onDelete(perform: deleteSessions)
+                    }
                 }
             }
-
-            List {
-                ForEach(sessions) { session in
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(session.name)
-                            .font(.headline)
-
-                        Text(session.repositoryPath)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                        
-                        Text("\(session.browser) · \(session.urls.count) URLs")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                        
-                        
-                        Button("Delete Session") {
-                            deleteSession(session)
+            .navigationSplitViewColumnWidth(min: 220, ideal: 260)
+        } detail: {
+            if let selectedSession {
+                VStack(alignment: .leading, spacing: 20) {
+                    HStack(alignment: .top) {
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text(selectedSession.name)
+                                .font(.largeTitle)
+                            
+                            Text(selectedSession.repositoryPath)
+                                .foregroundStyle(.secondary)
                         }
+                        
+                        Spacer()
                         
                         Button("Edit") {
-                            startEditing(session)
+                            startEditing(selectedSession)
+                        }
+                        
+                        Button("Delete") {
+                            deleteSession(selectedSession)
                         }
                     }
-                    .padding(.vertical, 4)
+                    
+                    Divider()
+                    
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Browser")
+                            .font(.headline)
+                        
+                        Text(selectedSession.browser)
+                            .foregroundStyle(.secondary)
+                    }
+                    
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("URLs")
+                            .font(.headline)
+                        
+                        if selectedSession.urls.isEmpty {
+                            Text("No URLs saved.")
+                                .foregroundStyle(.secondary)
+                        } else {
+                            ForEach(selectedSession.urls, id: \.self) { url in
+                                Text(url)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                    }
+                    
+                    Spacer()
                 }
-                .onDelete { indexSet in
-                    sessions.remove(atOffsets: indexSet)
-                    saveSessions()
+                .padding()
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            } else {
+                VStack(spacing: 12) {
+                    Image(systemName: "sidebar.left")
+                        .font(.system(size: 44))
+                        .foregroundStyle(.secondary)
+                    
+                    Text("Select a session")
+                        .font(.title2)
+                    
+                    Text("Choose a project session from the sidebar to view its details.")
+                        .foregroundStyle(.secondary)
                 }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
-            .frame(minHeight: 180)
-
-            Spacer()
         }
-        .padding()
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .onAppear {
             loadSessions()
         }
@@ -267,17 +317,20 @@ struct ContentView: View {
                     Spacer()
 
                     Button("Save") {
+                        let newSession = ProjectSession(
+                            id: UUID(),
+                            name: newSessionName,
+                            browser: newSessionBrowser,
+                            urls: newSessionURLs,
+                            repositoryPath: newSessionRepositoryPath
+                        )
+                        
                         sessions.append(
-                            ProjectSession(
-                                id: UUID(),
-                                name: newSessionName,
-                                browser: newSessionBrowser,
-                                urls: newSessionURLs,
-                                repositoryPath: newSessionRepositoryPath
-                            )
+                            newSession
                         )
 
                         saveSessions()
+                        selectedSessionID = newSession.id
                         resetNewSessionForm()
                         isShowingNewSessionForm = false
                     }
