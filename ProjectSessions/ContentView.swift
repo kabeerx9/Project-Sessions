@@ -8,6 +8,9 @@
 import SwiftUI
 
 
+private let sessionsKey = "projectSessions"
+
+
 
 struct ContentView: View {
     @State private var sessions = [
@@ -37,17 +40,20 @@ struct ContentView: View {
     private func addSession() {
         sessions.append(
             ProjectSession(
-                id : UUID(),
+                id: UUID(),
                 name: "New Session",
                 browser: "Chrome",
                 urls: [],
                 repositoryPath: "~/Projects/new-session"
             )
         )
+
+        saveSessions()
     }
 
     private func deleteSession(_ session: ProjectSession) {
         sessions.removeAll { $0.id == session.id }
+        saveSessions()
     }
     
     private func printSessionsJSON() {
@@ -69,7 +75,28 @@ struct ContentView: View {
             print("Failed to decode sessions: \(error)")
         }
     }
+    
+    private func saveSessions() {
+        do {
+            let data = try JSONEncoder().encode(sessions)
+            UserDefaults.standard.set(data, forKey: sessionsKey)
+        } catch {
+            print("Failed to save sessions: \(error)")
+        }
+    }
 
+    private func loadSessions() {
+        guard let data = UserDefaults.standard.data(forKey: sessionsKey) else {
+            return
+        }
+
+        do {
+            sessions = try JSONDecoder().decode([ProjectSession].self, from: data)
+        } catch {
+            print("Failed to load sessions: \(error)")
+        }
+    }
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
             HStack {
@@ -103,6 +130,11 @@ struct ContentView: View {
                         Text("\(session.browser) · \(session.urls.count) URLs")
                             .font(.caption)
                             .foregroundStyle(.secondary)
+                        
+                        
+                        Button("Delete Session") {
+                            deleteSession(session)
+                        }
                     }
                     .padding(.vertical, 4)
                 }
@@ -116,6 +148,9 @@ struct ContentView: View {
         }
         .padding()
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .onAppear {
+            loadSessions()
+        }
     }
 }
 #Preview {
