@@ -35,7 +35,7 @@ struct ContentView: View {
     @State private var sessionsToDelete: [ProjectSession] = []
 
     private func chooseRepositoryPathForNewSession() {
-        guard let path = chooseRepositoryPath() else {
+        guard let path = RepositoryFolderPicker.chooseRepositoryPath() else {
             return
         }
 
@@ -81,7 +81,7 @@ struct ContentView: View {
     }
 
     private func chooseRepositoryPathForEditSession() {
-        guard let path = chooseRepositoryPath() else {
+        guard let path = RepositoryFolderPicker.chooseRepositoryPath() else {
             return
         }
 
@@ -106,24 +106,6 @@ struct ContentView: View {
         self.editingSession = nil
     }
     
-    private func chooseRepositoryPath() -> String? {
-        let panel = NSOpenPanel()
-        panel.canChooseFiles = false
-        panel.canChooseDirectories = true
-        panel.allowsMultipleSelection = false
-        panel.canCreateDirectories = false
-        panel.title = "Choose Repository Folder"
-        panel.prompt = "Choose"
-
-        let response = panel.runModal()
-
-        guard response == .OK, let url = panel.url else {
-            return nil
-        }
-
-        return url.path
-    }
-    
     var body: some View {
         NavigationSplitView {
             SessionSidebarView(
@@ -138,6 +120,7 @@ struct ContentView: View {
                 onLaunch: SessionLauncher.launchURLs,
                 onOpenFolder: SessionLauncher.openRepositoryInFinder,
                 onOpenInCursor: SessionLauncher.openRepositoryInCursor,
+                onCopyCommands: CommandClipboard.copyCommands,
                 onEdit: startEditing,
                 onDelete: { session in
                     sessionsToDelete = [session]

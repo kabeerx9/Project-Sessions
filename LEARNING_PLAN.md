@@ -465,12 +465,13 @@ The Process API is for starting and controlling command-line programs. It should
 - [ ] Working directories
 - [ ] Environment variables
 - [ ] Reading output later
-- [ ] Knowing when not to run shell commands from the app
+- [x] Knowing when not to run shell commands from the app
 
 ### Project Implementation
 
 - [ ] Explore how a command could be launched
 - [x] Store terminal commands without running them
+- [x] Copy saved commands to the clipboard
 - [x] Defer automatic terminal command execution until after the MVP
 - [ ] Decide whether terminal control belongs in the app
 
@@ -485,6 +486,7 @@ After the MVP works, improve how the app feels as a native macOS application.
 - Alert = native confirmation dialog
 - Menu command = desktop app menu item
 - App icon = favicon plus installed app identity
+- `openWindow` = programmatically opening a named app window
 
 ### Concepts To Learn
 
@@ -494,6 +496,7 @@ After the MVP works, improve how the app feels as a native macOS application.
 - [ ] Menus
 - [x] Confirmation dialogs
 - [x] Native alerts
+- [x] Opening named windows
 - [ ] App icon basics
 
 ### Project Implementation
@@ -556,7 +559,8 @@ SwiftUI should be the default. AppKit should be introduced only when SwiftUI can
 
 - [x] Use `NSOpenPanel` to select a repository folder
 - [x] Store the selected path in a session
-- [ ] Avoid AppKit for normal layout and forms
+- [x] Avoid AppKit for normal layout and forms
+- [x] Move folder picking into a small AppKit helper
 
 ## Future Features
 

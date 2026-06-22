@@ -10,9 +10,10 @@ import SwiftUI
 @main
 struct ProjectSessionsApp: App {
     @State private var sessionStore = SessionStore()
+    @Environment(\.openWindow) private var openWindow
 
     var body: some Scene {
-        WindowGroup {
+        WindowGroup(id: "main") {
             ContentView(sessionStore: sessionStore)
         }
         .defaultSize(width: 1000, height: 650)
@@ -34,8 +35,23 @@ struct ProjectSessionsApp: App {
                         Button("Open in Cursor") {
                             SessionLauncher.openRepositoryInCursor(session)
                         }
+
+                        Button("Copy Commands") {
+                            CommandClipboard.copyCommands(for: session)
+                        }
+                        .disabled(session.commands.isEmpty)
                     }
                 }
+            }
+
+            Divider()
+
+            Button("Open Main Window") {
+                openWindow(id: "main")
+            }
+
+            Button("Quit Project Sessions") {
+                NSApplication.shared.terminate(nil)
             }
         }
     }

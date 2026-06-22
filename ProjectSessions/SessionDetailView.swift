@@ -6,6 +6,7 @@ struct SessionDetailView: View {
     let onLaunch: (ProjectSession) -> Void
     let onOpenFolder: (ProjectSession) -> Void
     let onOpenInCursor: (ProjectSession) -> Void
+    let onCopyCommands: (ProjectSession) -> Void
     let onEdit: (ProjectSession) -> Void
     let onDelete: (ProjectSession) -> Void
 
@@ -41,6 +42,11 @@ struct SessionDetailView: View {
                         onOpenInCursor(session)
                     }
                     .disabled(session.repositoryPath.isEmpty)
+
+                    Button("Copy Commands") {
+                        onCopyCommands(session)
+                    }
+                    .disabled(session.commands.isEmpty)
 
                     Button("Edit") {
                         onEdit(session)
@@ -126,6 +132,7 @@ struct SessionDetailView: View {
         onLaunch: { _ in },
         onOpenFolder: { _ in },
         onOpenInCursor: { _ in },
+        onCopyCommands: { _ in },
         onEdit: { _ in },
         onDelete: { _ in }
     )
