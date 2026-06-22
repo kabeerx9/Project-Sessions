@@ -32,7 +32,7 @@ struct SessionDetailView: View {
                         onRestore(session)
                     }
 
-                    Button("Launch Session") {
+                    Button("Open URLs") {
                         onLaunch(session)
                     }
                     .disabled(session.urls.isEmpty)
@@ -86,6 +86,15 @@ struct SessionDetailView: View {
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
+
+                HStack(spacing: 16) {
+                    Text("\(session.urls.count) URLs")
+                    Text("\(session.commands.count) commands")
+                    Text("Browser: \(session.browser.rawValue)")
+                    Text("Terminal: Ghostty")
+                }
+                .font(.caption)
+                .foregroundStyle(.secondary)
 
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Browser")
