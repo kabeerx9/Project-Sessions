@@ -20,7 +20,7 @@ struct SessionSidebarView: View {
                     Text("No sessions yet.")
                         .font(.headline)
 
-                    Text("Create your first project session.")
+                    Text("Use the toolbar + button or press Command-N.")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }

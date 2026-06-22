@@ -7,38 +7,8 @@
 
 import SwiftUI
 
-
-private let sessionsKey = "projectSessions"
-
-
-
 struct ContentView: View {
-    @State private var sessions = [
-        ProjectSession(
-            id : UUID(),
-            name: "Fantasy App",
-            browser: .chrome,
-            urls: ["https://github.com", "http://localhost:3000"],
-            repositoryPath: "~/Projects/fantasy-app",
-            commands: ["pnpm dev", "expo start"]
-        ),
-        ProjectSession(
-            id : UUID(),
-            name: "Dashboard",
-            browser: .chrome,
-            urls: ["https://figma.com"],
-            repositoryPath: "~/Projects/dashboard",
-            commands: ["npm run dev"]
-        ),
-        ProjectSession(
-            id : UUID(),
-            name: "SaaS",
-            browser: .safari,
-            urls: ["https://developer.apple.com"],
-            repositoryPath: "~/Projects/saas",
-            commands: []
-        )
-    ]
+    let sessionStore: SessionStore
     @State private var selectedSessionID: ProjectSession.ID?
     
     @State private var isShowingNewSessionForm = false
@@ -73,22 +43,20 @@ struct ContentView: View {
     }
     
     private var selectedSession: ProjectSession? {
-        sessions.first { $0.id == selectedSessionID }
+        sessionStore.sessions.first { $0.id == selectedSessionID }
     }
 
     private func confirmDeleteSessions(at offsets: IndexSet) {
-        sessionsToDelete = offsets.map { sessions[$0] }
+        sessionsToDelete = offsets.map { sessionStore.sessions[$0] }
     }
 
     private func deleteSessions(_ sessionsToDelete: [ProjectSession]) {
         let deletedIDs = sessionsToDelete.map(\.id)
-        sessions.removeAll { deletedIDs.contains($0.id) }
+        sessionStore.deleteSessions(sessionsToDelete)
         
         if let selectedSessionID, deletedIDs.contains(selectedSessionID) {
             self.selectedSessionID = nil
         }
-        
-        saveSessions()
     }
 
     private func launchSession(_ session: ProjectSession) {
@@ -139,27 +107,6 @@ struct ContentView: View {
         return URL(string: "https://\(trimmedURLString)")
     }
     
-    private func saveSessions() {
-        do {
-            let data = try JSONEncoder().encode(sessions)
-            UserDefaults.standard.set(data, forKey: sessionsKey)
-        } catch {
-            print("Failed to save sessions: \(error)")
-        }
-    }
-
-    private func loadSessions() {
-        guard let data = UserDefaults.standard.data(forKey: sessionsKey) else {
-            return
-        }
-
-        do {
-            sessions = try JSONDecoder().decode([ProjectSession].self, from: data)
-        } catch {
-            print("Failed to load sessions: \(error)")
-        }
-    }
-    
     private func resetNewSessionForm() {
         newSessionName = ""
         newSessionBrowser = .chrome
@@ -194,11 +141,7 @@ struct ContentView: View {
             return
         }
 
-        guard let index = sessions.firstIndex(where: { $0.id == editingSession.id }) else {
-            return
-        }
-
-        sessions[index] = ProjectSession(
+        let updatedSession = ProjectSession(
             id: editingSession.id,
             name: editSessionName,
             browser: editSessionBrowser,
@@ -207,7 +150,7 @@ struct ContentView: View {
             commands: editSessionCommands
         )
 
-        saveSessions()
+        sessionStore.updateSession(updatedSession)
         self.editingSession = nil
     }
     
@@ -289,7 +232,7 @@ struct ContentView: View {
     var body: some View {
         NavigationSplitView {
             SessionSidebarView(
-                sessions: sessions,
+                sessions: sessionStore.sessions,
                 selectedSessionID: $selectedSessionID,
                 onDeleteSessions: confirmDeleteSessions
             )
@@ -305,9 +248,6 @@ struct ContentView: View {
                     sessionsToDelete = [session]
                 }
             )
-        }
-        .onAppear {
-            loadSessions()
         }
         .toolbar {
             Button {
@@ -344,9 +284,7 @@ struct ContentView: View {
                         commands: newSessionCommands
                     )
 
-                    sessions.append(newSession)
-
-                    saveSessions()
+                    sessionStore.addSession(newSession)
                     selectedSessionID = newSession.id
                     resetNewSessionForm()
                     isShowingNewSessionForm = false
@@ -413,5 +351,5 @@ struct ContentView: View {
     }
 }
 #Preview {
-    ContentView()
+    ContentView(sessionStore: SessionStore())
 }

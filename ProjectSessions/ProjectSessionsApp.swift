@@ -9,9 +9,11 @@ import SwiftUI
 
 @main
 struct ProjectSessionsApp: App {
+    @State private var sessionStore = SessionStore()
+
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            ContentView(sessionStore: sessionStore)
         }
         .defaultSize(width: 1000, height: 650)
     }

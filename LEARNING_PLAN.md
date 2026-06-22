@@ -502,7 +502,7 @@ After the MVP works, improve how the app feels as a native macOS application.
 - [x] Add keyboard shortcut for creating a session
 - [x] Add delete confirmation
 - [x] Set a sensible default window size
-- [ ] Improve empty states
+- [x] Improve empty states
 - [ ] Add app icon
 
 ## Section 12: MenuBarExtra
@@ -521,7 +521,8 @@ After the MVP works, improve how the app feels as a native macOS application.
 - [ ] `MenuBarExtra`
 - [ ] Menu bar app behavior
 - [ ] Commands inside a menu
-- [ ] Sharing state between windows and menu bar
+- [x] Sharing state between windows and menu bar
+- [x] `@Observable` store objects
 
 ### Project Implementation
 
@@ -529,6 +530,8 @@ After the MVP works, improve how the app feels as a native macOS application.
 - [ ] List saved sessions in the menu bar
 - [ ] Launch a session from the menu bar
 - [ ] Keep the main window available for editing
+- [x] Move session state into `SessionStore`
+- [x] Move persistence out of `ContentView`
 
 ## Section 13: AppKit Only When Needed
 
