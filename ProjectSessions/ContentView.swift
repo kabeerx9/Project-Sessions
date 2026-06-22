@@ -318,6 +318,13 @@ struct ContentView: View {
         .onAppear {
             loadSessions()
         }
+        .toolbar {
+            Button {
+                isShowingNewSessionForm = true
+            } label: {
+                Label("New Session", systemImage: "plus")
+            }
+        }
         .sheet(isPresented: $isShowingNewSessionForm) {
             SessionFormView(
                 title: nil,
