@@ -189,6 +189,8 @@ struct SessionDetailView: View {
     private func nativeRunnerLab(_ session: ProjectSession) -> some View {
         let runs = experimentalCommandRunStore.runs(for: session)
         let selectedRun = experimentalCommandRunStore.selectedRun(for: session)
+        let selectedOutput = selectedRun?.output ?? ""
+        let logBottomID = "native-runner-log-bottom"
 
         return Panel {
             VStack(alignment: .leading, spacing: 14) {
@@ -251,13 +253,56 @@ struct SessionDetailView: View {
                     }
                 }
 
-                ScrollView {
-                    Text(selectedRun?.output.isEmpty == false ? selectedRun?.output ?? "" : "No output yet.")
-                        .font(.system(size: 12, design: .monospaced))
-                        .foregroundStyle(.primary)
-                        .textSelection(.enabled)
-                        .frame(maxWidth: .infinity, alignment: .topLeading)
-                        .padding(12)
+                HStack(spacing: 10) {
+                    Button {
+                        if let selectedRun {
+                            experimentalCommandRunStore.stop(selectedRun)
+                        }
+                    } label: {
+                        Label("Stop", systemImage: "stop.fill")
+                    }
+                    .disabled(selectedRun?.isRunning != true)
+
+                    Button {
+                        if let selectedRun {
+                            experimentalCommandRunStore.restart(selectedRun, for: session)
+                        }
+                    } label: {
+                        Label("Restart", systemImage: "arrow.clockwise")
+                    }
+                    .disabled(selectedRun == nil)
+
+                    Button {
+                        selectedRun?.clearOutput()
+                    } label: {
+                        Label("Clear", systemImage: "trash")
+                    }
+                    .disabled(selectedRun == nil)
+
+                    Spacer()
+                }
+
+                ScrollViewReader { proxy in
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: 0) {
+                            Text(selectedOutput.isEmpty ? "No output yet." : selectedOutput)
+                                .font(.system(size: 12, design: .monospaced))
+                                .foregroundStyle(.primary)
+                                .textSelection(.enabled)
+                                .frame(maxWidth: .infinity, alignment: .topLeading)
+                                .padding(12)
+
+                            Color.clear
+                                .frame(height: 1)
+                                .id(logBottomID)
+                        }
+                    }
+                    .onChange(of: selectedOutput) {
+                        proxy.scrollTo(logBottomID, anchor: .bottom)
+                    }
+                    .onChange(of: selectedRun?.id) {
+                        proxy.scrollTo(logBottomID, anchor: .bottom)
+                    }
                 }
                 .frame(minHeight: 180, maxHeight: 260)
                 .background(Color.black.opacity(0.88))

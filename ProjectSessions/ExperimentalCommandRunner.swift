@@ -77,6 +77,23 @@ final class ExperimentalCommandRunStore {
         run.stop()
     }
 
+    func restart(_ run: ExperimentalCommandRun, for session: ProjectSession) {
+        guard let command = session.commands.first(where: { $0.id == run.commandID }) else {
+            return
+        }
+
+        if run.isRunning {
+            run.stop()
+        }
+
+        runs.removeAll { $0.id == run.id }
+        selectedRunID = nil
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            self.start(command, for: session)
+        }
+    }
+
     func stopAll(for session: ProjectSession) {
         for run in runs(for: session) where run.isRunning {
             run.stop()
@@ -210,6 +227,10 @@ final class ExperimentalCommandRun: Identifiable {
 
         status = .stopped
         terminateProcessTree(process.processIdentifier)
+    }
+
+    func clearOutput() {
+        output = ""
     }
 
     private func append(_ text: String) {
