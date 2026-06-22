@@ -309,6 +309,7 @@ enum SessionLauncher {
             showTerminalAutomationPermissionAlertIfNeeded(error)
         } else {
             print("Opening Terminal command: \(record.title)")
+            print("[Project Sessions Debug] Terminal launch result for record id=\(record.id) title=\(record.title): \(result.stringValue ?? String(result.int32Value))")
 
             if result.int32Value != 0 {
                 terminalProcessStore.updateTerminalWindowID(
@@ -391,14 +392,20 @@ enum SessionLauncher {
         for session: ProjectSession,
         terminalProcessStore: TerminalProcessStore
     ) {
-        let tabTitles = terminalProcessStore
-            .records(for: session)
+        let records = terminalProcessStore.records(for: session)
+        let tabTitles = records
             .map(\.terminalTabTitle)
-        let windowIDs = terminalProcessStore
-            .records(for: session)
+        let windowIDs = records
             .compactMap(\.terminalWindowID)
 
+        print("[Project Sessions Debug] Shutdown close requested for session=\(session.name)")
+
+        for record in records {
+            print("[Project Sessions Debug] Close candidate title=\(record.title) status=\(record.status.rawValue) pid=\(String(describing: record.pid)) windowID=\(String(describing: record.terminalWindowID)) tabTitle=\(record.terminalTabTitle)")
+        }
+
         guard !tabTitles.isEmpty || !windowIDs.isEmpty else {
+            print("[Project Sessions Debug] No Terminal records available for close.")
             return
         }
 
@@ -416,13 +423,17 @@ enum SessionLauncher {
 
         let script = """
         tell application "Terminal"
+            set debugLines to {}
             set windowsToClose to {}
+            set matchingWindowIDs to {}
+            set matchingTabTitles to {}
 
             repeat with terminalWindow in windows
                 set windowID to id of terminalWindow
 
                 if \(windowIDChecks) then
                     set end of windowsToClose to terminalWindow
+                    set end of matchingWindowIDs to windowID
                 end if
             end repeat
 
@@ -430,21 +441,25 @@ enum SessionLauncher {
                 close terminalWindow
             end repeat
 
-            repeat with terminalWindow in windows
-                set matchingTabs to {}
+            set tabWindowsToClose to {}
 
+            repeat with terminalWindow in windows
                 repeat with terminalTab in tabs of terminalWindow
                     set tabTitle to custom title of terminalTab
 
                     if \(titleChecks) then
-                        set end of matchingTabs to terminalTab
+                        set end of tabWindowsToClose to terminalWindow
+                        set end of matchingTabTitles to tabTitle
+                        exit repeat
                     end if
                 end repeat
-
-                repeat with terminalTab in matchingTabs
-                    close terminalTab
-                end repeat
             end repeat
+
+            repeat with terminalWindow in tabWindowsToClose
+                close terminalWindow
+            end repeat
+
+            return "windowIDs=" & (matchingWindowIDs as string) & "; tabTitles=" & (matchingTabTitles as string)
         end tell
         """
 
@@ -455,11 +470,13 @@ enum SessionLauncher {
             return
         }
 
-        appleScript.executeAndReturnError(&error)
+        let result = appleScript.executeAndReturnError(&error)
 
         if let error {
             print("Could not close Terminal windows for \(session.name): \(error)")
             showTerminalAutomationPermissionAlertIfNeeded(error)
+        } else {
+            print("[Project Sessions Debug] Terminal close result for session=\(session.name): \(result.stringValue ?? String(result.int32Value))")
         }
     }
 

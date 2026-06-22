@@ -21,15 +21,18 @@ class TerminalProcessStore {
     }
 
     func track(_ record: TerminalProcessRecord) {
+        print("[Project Sessions Debug] Tracking terminal record id=\(record.id) title=\(record.title) tabTitle=\(record.terminalTabTitle)")
         records.append(record)
         saveRecords()
     }
 
     func updateTerminalWindowID(for recordID: TerminalProcessRecord.ID, windowID: Int) {
         guard let index = records.firstIndex(where: { $0.id == recordID }) else {
+            print("[Project Sessions Debug] Could not store Terminal window id=\(windowID); record not found id=\(recordID)")
             return
         }
 
+        print("[Project Sessions Debug] Stored Terminal window id=\(windowID) for record id=\(recordID) title=\(records[index].title)")
         records[index].terminalWindowID = windowID
         saveRecords()
     }
@@ -55,6 +58,7 @@ class TerminalProcessStore {
             }
 
             if record != oldRecord {
+                print("[Project Sessions Debug] Refreshed record title=\(record.title) pid=\(String(describing: record.pid)) status=\(record.status.rawValue) windowID=\(String(describing: record.terminalWindowID))")
                 records[index] = record
                 didChange = true
             }
@@ -74,7 +78,10 @@ class TerminalProcessStore {
             }
 
             if let pid = records[index].pid ?? readPID(from: records[index].pidFilePath) {
+                print("[Project Sessions Debug] Stopping process tree pid=\(pid) title=\(records[index].title) windowID=\(String(describing: records[index].terminalWindowID))")
                 terminateProcessTree(pid)
+            } else {
+                print("[Project Sessions Debug] No pid found while stopping title=\(records[index].title) windowID=\(String(describing: records[index].terminalWindowID))")
             }
 
             records[index].status = .stopped
