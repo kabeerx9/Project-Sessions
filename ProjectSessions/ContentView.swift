@@ -111,20 +111,20 @@ struct ContentView: View {
 
             DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
                 print("Opening URL: \(url.absoluteString)")
-                openURLWithSystemOpenCommand(url)
+                openURLWithSystemOpenCommand(url, browser: session.browser)
             }
         }
     }
 
-    private func openURLWithSystemOpenCommand(_ url: URL) {
+    private func openURLWithSystemOpenCommand(_ url: URL, browser: Browser) {
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/usr/bin/open")
-        process.arguments = [url.absoluteString]
+        process.arguments = ["-a", browser.appName, url.absoluteString]
 
         do {
             try process.run()
         } catch {
-            print("Could not open URL with /usr/bin/open: \(url.absoluteString), error: \(error)")
+            print("Could not open URL in \(browser.appName): \(url.absoluteString), error: \(error)")
             NSWorkspace.shared.open(url)
         }
     }
