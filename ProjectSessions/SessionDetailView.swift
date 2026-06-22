@@ -2,16 +2,17 @@ import SwiftUI
 
 struct SessionDetailView: View {
     let session: ProjectSession?
-    let onRestore: (ProjectSession) -> Void
-    let onLaunch: (ProjectSession) -> Void
-    let onOpenFolder: (ProjectSession) -> Void
-    let onOpenInCursor: (ProjectSession) -> Void
-    let onOpenInGhostty: (ProjectSession) -> Void
-    let onCopyCommands: (ProjectSession) -> Void
-    let onCopyRepositoryPathAndCommands: (ProjectSession) -> Void
-    let onCopyShellChain: (ProjectSession) -> Void
-    let onEdit: (ProjectSession) -> Void
-    let onDelete: (ProjectSession) -> Void
+    let onRestore: @MainActor (ProjectSession) -> Void
+    let onLaunch: @MainActor (ProjectSession) -> Void
+    let onOpenFolder: @MainActor (ProjectSession) -> Void
+    let onOpenInCursor: @MainActor (ProjectSession) -> Void
+    let onOpenInGhostty: @MainActor (ProjectSession) -> Void
+    let onRunCommandsInGhostty: @MainActor (ProjectSession) -> Void
+    let onCopyCommands: @MainActor (ProjectSession) -> Void
+    let onCopyRepositoryPathAndCommands: @MainActor (ProjectSession) -> Void
+    let onCopyShellChain: @MainActor (ProjectSession) -> Void
+    let onEdit: @MainActor (ProjectSession) -> Void
+    let onDelete: @MainActor (ProjectSession) -> Void
     @State private var copiedMessage: String?
 
     var body: some View {
@@ -51,6 +52,11 @@ struct SessionDetailView: View {
                         onOpenInGhostty(session)
                     }
                     .disabled(session.repositoryPath.isEmpty)
+
+                    Button("Run Commands") {
+                        onRunCommandsInGhostty(session)
+                    }
+                    .disabled(session.repositoryPath.isEmpty || session.commands.isEmpty)
 
                     Button("Copy Commands") {
                         onCopyCommands(session)
@@ -195,6 +201,7 @@ struct SessionDetailView: View {
         onOpenFolder: { _ in },
         onOpenInCursor: { _ in },
         onOpenInGhostty: { _ in },
+        onRunCommandsInGhostty: { _ in },
         onCopyCommands: { _ in },
         onCopyRepositoryPathAndCommands: { _ in },
         onCopyShellChain: { _ in },

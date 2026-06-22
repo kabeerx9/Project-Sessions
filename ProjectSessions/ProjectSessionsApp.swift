@@ -41,6 +41,11 @@ struct ProjectSessionsApp: App {
                         }
                         .disabled(session.repositoryPath.isEmpty)
 
+                        Button("Run Commands") {
+                            SessionLauncher.runCommandsInGhostty(for: session)
+                        }
+                        .disabled(session.repositoryPath.isEmpty || session.commands.isEmpty)
+
                         Button("Copy Commands") {
                             CommandClipboard.copyCommands(for: session)
                         }

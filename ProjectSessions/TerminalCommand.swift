@@ -26,6 +26,15 @@ struct TerminalCommand: Identifiable, Codable, Hashable {
     }
 
     init(from decoder: Decoder) throws {
+        if let container = try? decoder.singleValueContainer(),
+           let savedCommand = try? container.decode(String.self) {
+            id = UUID()
+            name = ""
+            command = savedCommand
+            runsInSeparateTab = true
+            return
+        }
+
         let container = try decoder.container(keyedBy: CodingKeys.self)
 
         id = try container.decodeIfPresent(UUID.self, forKey: .id) ?? UUID()

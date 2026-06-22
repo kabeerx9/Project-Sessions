@@ -124,14 +124,33 @@ struct ContentView: View {
         } detail: {
             SessionDetailView(
                 session: selectedSession,
-                onRestore: SessionLauncher.restore,
-                onLaunch: SessionLauncher.launchURLs,
-                onOpenFolder: SessionLauncher.openRepositoryInFinder,
-                onOpenInCursor: SessionLauncher.openRepositoryInCursor,
-                onOpenInGhostty: SessionLauncher.openRepositoryInGhostty,
-                onCopyCommands: CommandClipboard.copyCommands,
-                onCopyRepositoryPathAndCommands: CommandClipboard.copyRepositoryPathAndCommands,
-                onCopyShellChain: CommandClipboard.copyShellChain,
+                onRestore: { session in
+                    SessionLauncher.restore(session)
+                },
+                onLaunch: { session in
+                    SessionLauncher.launchURLs(for: session)
+                },
+                onOpenFolder: { session in
+                    SessionLauncher.openRepositoryInFinder(session)
+                },
+                onOpenInCursor: { session in
+                    SessionLauncher.openRepositoryInCursor(session)
+                },
+                onOpenInGhostty: { session in
+                    SessionLauncher.openRepositoryInGhostty(session)
+                },
+                onRunCommandsInGhostty: { session in
+                    SessionLauncher.runCommandsInGhostty(for: session)
+                },
+                onCopyCommands: { session in
+                    CommandClipboard.copyCommands(for: session)
+                },
+                onCopyRepositoryPathAndCommands: { session in
+                    CommandClipboard.copyRepositoryPathAndCommands(for: session)
+                },
+                onCopyShellChain: { session in
+                    CommandClipboard.copyShellChain(for: session)
+                },
                 onEdit: startEditing,
                 onDelete: { session in
                     sessionsToDelete = [session]

@@ -5,7 +5,12 @@ enum SessionLauncher {
     static func restore(_ session: ProjectSession) {
         launchURLs(for: session)
         openRepositoryInCursor(session)
-        openRepositoryInGhostty(session)
+
+        if session.commands.isEmpty {
+            openRepositoryInGhostty(session)
+        } else {
+            runCommandsInGhostty(for: session)
+        }
     }
 
     static func launchURLs(for session: ProjectSession) {
@@ -76,12 +81,51 @@ enum SessionLauncher {
 
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/usr/bin/open")
-        process.arguments = ["-a", "Ghostty", expandedRepositoryPath]
+        process.arguments = [
+            "-na",
+            "Ghostty.app",
+            "--args",
+            "--working-directory=\(expandedRepositoryPath)",
+            "--window-save-state=never"
+        ]
 
         do {
             try process.run()
         } catch {
             print("Could not open repository in Ghostty: \(error)")
+        }
+    }
+
+    static func runCommandsInGhostty(for session: ProjectSession) {
+        let expandedRepositoryPath = expandedPath(session.repositoryPath)
+
+        guard FileManager.default.fileExists(atPath: expandedRepositoryPath) else {
+            print("Repository path does not exist: \(expandedRepositoryPath)")
+            return
+        }
+
+        guard canOpenGhostty() else {
+            print("Could not find Ghostty.app. Opening the project folder in Finder instead.")
+            openRepositoryInFinder(session)
+            return
+        }
+
+        let plans = TerminalLaunchPlanner.plans(for: session)
+
+        guard !plans.isEmpty else {
+            openRepositoryInGhostty(session)
+            return
+        }
+
+        for (index, plan) in plans.enumerated() {
+            let delay = Double(index) * 0.5
+
+            DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+                launchGhosttyCommand(
+                    workingDirectory: expandedRepositoryPath,
+                    plan: plan
+                )
+            }
         }
     }
 
@@ -110,6 +154,41 @@ enum SessionLauncher {
         }
 
         return URL(string: "https://\(trimmedURLString)")
+    }
+
+    private static func launchGhosttyCommand(
+        workingDirectory: String,
+        plan: TerminalLaunchPlan
+    ) {
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/open")
+        process.arguments = [
+            "-na",
+            "Ghostty.app",
+            "--args",
+            "--working-directory=\(workingDirectory)",
+            "--window-save-state=never",
+            "--command=shell:\(plan.shellCommand); printf '\\n'; exec /bin/zsh -l"
+        ]
+
+        do {
+            print("Opening Ghostty command: \(plan.title)")
+            try process.run()
+        } catch {
+            print("Could not run Ghostty command \(plan.title): \(error)")
+        }
+    }
+
+    private static func canOpenGhostty() -> Bool {
+        let homeDirectory = FileManager.default.homeDirectoryForCurrentUser.path
+        let candidatePaths = [
+            "/Applications/Ghostty.app",
+            "\(homeDirectory)/Applications/Ghostty.app"
+        ]
+
+        return candidatePaths.contains {
+            FileManager.default.fileExists(atPath: $0)
+        }
     }
 
     private static func expandedPath(_ path: String) -> String {
