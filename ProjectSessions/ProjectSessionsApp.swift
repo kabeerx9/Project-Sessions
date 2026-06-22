@@ -30,7 +30,8 @@ struct ProjectSessionsApp: App {
             } else {
                 ForEach(sessionStore.sessions) { session in
                     Menu(session.name) {
-                        Button("Restore Session") {
+                        Button("Start Session") {
+                            SessionStartOverlay.show(sessionName: session.name)
                             workspaceRuntimeStore.markStarted(session)
                             SessionLauncher.restore(session, terminalProcessStore: terminalProcessStore)
                         }

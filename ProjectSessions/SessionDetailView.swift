@@ -20,8 +20,6 @@ struct SessionDetailView: View {
     let onEdit: @MainActor (ProjectSession) -> Void
     let onDelete: @MainActor (ProjectSession) -> Void
 
-    @State private var isRestoring = false
-
     var body: some View {
         ZStack {
             WiseColors.canvasSoft.ignoresSafeArea()
@@ -45,14 +43,8 @@ struct SessionDetailView: View {
                 EmptyStateView()
             }
 
-            if isRestoring {
-                RestoreOverlayView()
-                    .transition(.opacity)
-                    .zIndex(2)
-            }
         }
         .background(WiseColors.canvasSoft)
-        .animation(.easeOut(duration: 0.18), value: isRestoring)
         .animation(.easeOut(duration: 0.16), value: session?.id)
     }
 
@@ -108,21 +100,12 @@ struct SessionDetailView: View {
                         if isWorkspaceActive {
                             onShutdownWorkspace(session)
                         } else {
-                            withAnimation {
-                                isRestoring = true
-                            }
-
+                            SessionStartOverlay.show(sessionName: session.name)
                             onRestore(session)
-
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 1.8) {
-                                withAnimation {
-                                    isRestoring = false
-                                }
-                            }
                         }
                     } label: {
                         Label(
-                            isWorkspaceActive ? "Shutdown Workspace" : "Restore Session",
+                            isWorkspaceActive ? "Shutdown Workspace" : "Start Session",
                             systemImage: isWorkspaceActive ? "power" : "play.fill"
                         )
                     }
@@ -526,21 +509,5 @@ private struct EmptyStateView: View {
                 .foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-    }
-}
-
-private struct RestoreOverlayView: View {
-    var body: some View {
-        VStack(spacing: 12) {
-            ProgressView()
-                .controlSize(.large)
-
-            Text("Starting session")
-                .font(.headline)
-        }
-        .padding(28)
-        .background(.regularMaterial)
-        .clipShape(RoundedRectangle(cornerRadius: WiseRadii.lg, style: .continuous))
-        .shadow(radius: 18, y: 8)
     }
 }
