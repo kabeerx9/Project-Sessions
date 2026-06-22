@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "writing-for-interfaces": {
+      "source": "andrewgleave/skills",
+      "sourceType": "github",
+      "skillPath": "writing-for-interfaces/SKILL.md",
+      "computedHash": "fff061810c3e63b97fea546da1b86d88629f422a5d38d4ac13497b689a18419e"
+    }
+  }
+}
