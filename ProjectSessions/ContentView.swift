@@ -61,6 +61,8 @@ struct ContentView: View {
     @State private var editSessionURLDraft = ""
     @State private var editSessionCommands: [String] = []
     @State private var editSessionCommandDraft = ""
+    
+    @State private var sessionToDelete: ProjectSession?
 
     private func chooseRepositoryPathForNewSession() {
         guard let path = chooseRepositoryPath() else {
@@ -308,7 +310,9 @@ struct ContentView: View {
                 onOpenFolder: openRepositoryInFinder,
                 onOpenInCursor: openRepositoryInCursor,
                 onEdit: startEditing,
-                onDelete: deleteSession
+                onDelete: { session in
+                    sessionToDelete = session
+                }
             )
         }
         .onAppear {
@@ -370,6 +374,31 @@ struct ContentView: View {
                     saveEditedSession()
                 }
             )
+        }
+        .alert(
+            "Delete Session?",
+            isPresented: Binding(
+                get: {
+                    sessionToDelete != nil
+                },
+                set: { isPresented in
+                    if !isPresented {
+                        sessionToDelete = nil
+                    }
+                }
+            ),
+            presenting: sessionToDelete
+        ) { session in
+            Button("Cancel", role: .cancel) {
+                sessionToDelete = nil
+            }
+
+            Button("Delete", role: .destructive) {
+                deleteSession(session)
+                sessionToDelete = nil
+            }
+        } message: { session in
+            Text("This will delete \(session.name).")
         }
     }
 }

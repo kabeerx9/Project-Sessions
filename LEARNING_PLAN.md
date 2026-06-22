@@ -492,15 +492,15 @@ After the MVP works, improve how the app feels as a native macOS application.
 - [ ] Toolbar buttons
 - [ ] Keyboard shortcuts
 - [ ] Menus
-- [ ] Confirmation dialogs
-- [ ] Native alerts
+- [x] Confirmation dialogs
+- [x] Native alerts
 - [ ] App icon basics
 
 ### Project Implementation
 
 - [ ] Add toolbar actions
 - [ ] Add keyboard shortcut for creating a session
-- [ ] Add delete confirmation
+- [x] Add delete confirmation
 - [ ] Improve empty states
 - [ ] Add app icon
 
