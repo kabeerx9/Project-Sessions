@@ -52,6 +52,10 @@ struct ContentView: View {
         sessionStore.sessions.first { $0.id == selectedSessionID }
     }
 
+    private var runningSessionIDs: Set<ProjectSession.ID> {
+        Set(commandRunStore.runs.filter(\.isRunning).map(\.sessionID))
+    }
+
     private func confirmDeleteSessions(at offsets: IndexSet) {
         sessionsToDelete = offsets.map { sessionStore.sessions[$0] }
     }
@@ -117,6 +121,43 @@ struct ContentView: View {
         sessionStore.updateSession(updatedSession)
         self.editingSession = nil
     }
+
+    private func runAllCommands(for session: ProjectSession) {
+        commandRunStore.startAll(for: session)
+
+        if commandRunStore.runningCount(for: session) > 0 {
+            workspaceRuntimeStore.markStarted(session)
+        }
+    }
+
+    private func stopAllCommands(for session: ProjectSession) {
+        commandRunStore.stopAll(for: session)
+    }
+
+    private func runCommand(_ command: WorkspaceCommand, for session: ProjectSession) {
+        commandRunStore.start(command, for: session)
+
+        if commandRunStore.runningCount(for: session) > 0 {
+            workspaceRuntimeStore.markStarted(session)
+        }
+    }
+
+    private func stopCommand(_ run: CommandRun, for session: ProjectSession) {
+        commandRunStore.stop(run)
+    }
+
+    private func restartCommand(_ run: CommandRun, for session: ProjectSession) {
+        commandRunStore.restart(run, for: session)
+        workspaceRuntimeStore.markStarted(session)
+    }
+
+    private func markStoppedSessions(_ oldRunningSessionIDs: Set<ProjectSession.ID>, _ newRunningSessionIDs: Set<ProjectSession.ID>) {
+        let stoppedSessionIDs = oldRunningSessionIDs.subtracting(newRunningSessionIDs)
+
+        for session in sessionStore.sessions where stoppedSessionIDs.contains(session.id) {
+            workspaceRuntimeStore.markStopped(session)
+        }
+    }
     
     var body: some View {
         ZStack {
@@ -153,8 +194,23 @@ struct ContentView: View {
                         SessionLauncher.openRepositoryInCursor(session)
                     },
                     onShutdownWorkspace: { session in
-                        commandRunStore.stopAll(for: session)
+                        stopAllCommands(for: session)
                         workspaceRuntimeStore.markStopped(session)
+                    },
+                    onRunAllCommands: { session in
+                        runAllCommands(for: session)
+                    },
+                    onStopAllCommands: { session in
+                        stopAllCommands(for: session)
+                    },
+                    onRunCommand: { command, session in
+                        runCommand(command, for: session)
+                    },
+                    onStopCommand: { run, session in
+                        stopCommand(run, for: session)
+                    },
+                    onRestartCommand: { run, session in
+                        restartCommand(run, for: session)
                     },
                     onCopyCommands: { session in
                         CommandClipboard.copyCommands(for: session)
@@ -263,6 +319,9 @@ struct ContentView: View {
             } message: {
                 Text(deleteAlertMessage)
             }
+        }
+        .onChange(of: runningSessionIDs) { oldRunningSessionIDs, newRunningSessionIDs in
+            markStoppedSessions(oldRunningSessionIDs, newRunningSessionIDs)
         }
     }
 

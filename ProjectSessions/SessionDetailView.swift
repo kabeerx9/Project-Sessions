@@ -10,6 +10,11 @@ struct SessionDetailView: View {
     let onOpenFolder: @MainActor (ProjectSession) -> Void
     let onOpenInCursor: @MainActor (ProjectSession) -> Void
     let onShutdownWorkspace: @MainActor (ProjectSession) -> Void
+    let onRunAllCommands: @MainActor (ProjectSession) -> Void
+    let onStopAllCommands: @MainActor (ProjectSession) -> Void
+    let onRunCommand: @MainActor (WorkspaceCommand, ProjectSession) -> Void
+    let onStopCommand: @MainActor (CommandRun, ProjectSession) -> Void
+    let onRestartCommand: @MainActor (CommandRun, ProjectSession) -> Void
     let onCopyCommands: @MainActor (ProjectSession) -> Void
     let onCopyRepositoryPathAndCommands: @MainActor (ProjectSession) -> Void
     let onCopyShellChain: @MainActor (ProjectSession) -> Void
@@ -53,8 +58,8 @@ struct SessionDetailView: View {
                                 .minimumScaleFactor(0.7)
 
                             StatusPill(
-                                text: isWorkspaceActive ? "Active" : "Stopped",
-                                color: isWorkspaceActive ? WiseColors.positive : WiseColors.mute
+                                text: isWorkspaceActive(session) ? "Active" : "Stopped",
+                                color: isWorkspaceActive(session) ? WiseColors.positive : WiseColors.mute
                             )
                         }
 
@@ -64,7 +69,7 @@ struct SessionDetailView: View {
                             .lineLimit(1)
                             .truncationMode(.middle)
 
-                        if isWorkspaceActive {
+                        if isWorkspaceActive(session) {
                             Text(workspaceOpenSinceText)
                                 .font(.caption)
                                 .foregroundStyle(WiseColors.positive)
@@ -90,7 +95,7 @@ struct SessionDetailView: View {
 
                 HStack(spacing: 10) {
                     Button {
-                        if isWorkspaceActive {
+                        if isWorkspaceActive(session) {
                             onShutdownWorkspace(session)
                         } else {
                             SessionStartOverlay.show(sessionName: session.name)
@@ -98,12 +103,12 @@ struct SessionDetailView: View {
                         }
                     } label: {
                         Label(
-                            isWorkspaceActive ? "Shutdown Workspace" : "Start Session",
-                            systemImage: isWorkspaceActive ? "power" : "play.fill"
+                            isWorkspaceActive(session) ? "Shutdown Workspace" : "Start Session",
+                            systemImage: isWorkspaceActive(session) ? "power" : "play.fill"
                         )
                     }
                     .buttonStyle(.borderedProminent)
-                    .tint(isWorkspaceActive ? WiseColors.negative : WiseColors.primary)
+                    .tint(isWorkspaceActive(session) ? WiseColors.negative : WiseColors.primary)
 
                     Spacer()
 
@@ -182,14 +187,14 @@ struct SessionDetailView: View {
 
                 HStack(spacing: 10) {
                     Button {
-                        commandRunStore.startAll(for: session)
+                        onRunAllCommands(session)
                     } label: {
                         Label("Run All", systemImage: "play.fill")
                     }
                     .disabled(session.commands.isEmpty || session.repositoryPath.isEmpty)
 
                     Button {
-                        commandRunStore.stopAll(for: session)
+                        onStopAllCommands(session)
                     } label: {
                         Label("Stop All", systemImage: "stop.fill")
                     }
@@ -314,7 +319,7 @@ struct SessionDetailView: View {
                 VStack(alignment: .leading, spacing: 14) {
                     SectionHeader("Workspace", systemImage: "rectangle.connected.to.line.below")
 
-                    InfoRow(title: "Status", value: isWorkspaceActive ? "Active" : "Stopped")
+                    InfoRow(title: "Status", value: isWorkspaceActive(session) ? "Active" : "Stopped")
                     InfoRow(title: "Activity", value: workspaceStatusSubvalue)
                 }
             }
@@ -383,9 +388,9 @@ struct SessionDetailView: View {
             HStack(spacing: 8) {
                 Button {
                     if let run, run.isRunning {
-                        commandRunStore.stop(run)
+                        onStopCommand(run, session)
                     } else {
-                        commandRunStore.start(command, for: session)
+                        onRunCommand(command, session)
                     }
                 } label: {
                     Label(run?.isRunning == true ? "Stop" : "Run", systemImage: run?.isRunning == true ? "stop.fill" : "play.fill")
@@ -395,7 +400,7 @@ struct SessionDetailView: View {
 
                 Button {
                     if let run {
-                        commandRunStore.restart(run, for: session)
+                        onRestartCommand(run, session)
                     }
                 } label: {
                     Label("Restart", systemImage: "arrow.clockwise")
@@ -419,8 +424,8 @@ struct SessionDetailView: View {
         }
     }
 
-    private var isWorkspaceActive: Bool {
-        workspaceRuntime?.status == .active
+    private func isWorkspaceActive(_ session: ProjectSession) -> Bool {
+        workspaceRuntime?.status == .active || commandRunStore.runningCount(for: session) > 0
     }
 
     private var workspaceStatusSubvalue: String {
