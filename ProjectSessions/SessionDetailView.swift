@@ -25,7 +25,7 @@ struct SessionDetailView: View {
                     VStack(alignment: .leading, spacing: 16) {
                         header(session)
                         quickActions(session)
-                        nativeRunnerLab(session)
+                        commandConsole(session)
                         detailsGrid(session)
                     }
                     .padding(24)
@@ -161,11 +161,11 @@ struct SessionDetailView: View {
         }
     }
 
-    private func nativeRunnerLab(_ session: ProjectSession) -> some View {
+    private func commandConsole(_ session: ProjectSession) -> some View {
         let runs = commandRunStore.runs(for: session)
         let selectedRun = commandRunStore.selectedRun(for: session)
         let selectedOutput = selectedRun?.output ?? ""
-        let logBottomID = "native-runner-log-bottom"
+        let logBottomID = "command-console-log-bottom"
 
         return Panel {
             VStack(alignment: .leading, spacing: 14) {
@@ -175,8 +175,8 @@ struct SessionDetailView: View {
                     Spacer()
 
                     StatusPill(
-                        text: nativeRunnerStatusText(for: session),
-                        color: nativeRunnerStatusColor(for: session)
+                        text: commandConsoleStatusText(for: session),
+                        color: commandConsoleStatusColor(for: session)
                     )
                 }
 
@@ -392,7 +392,7 @@ struct SessionDetailView: View {
         return "Open since \(workspaceRuntime.startedAt.formatted(date: .omitted, time: .shortened))"
     }
 
-    private func nativeRunnerStatusText(for session: ProjectSession) -> String {
+    private func commandConsoleStatusText(for session: ProjectSession) -> String {
         let runningCount = commandRunStore.runningCount(for: session)
         let runCount = commandRunStore.runs(for: session).count
 
@@ -407,7 +407,7 @@ struct SessionDetailView: View {
         return "Idle"
     }
 
-    private func nativeRunnerStatusColor(for session: ProjectSession) -> Color {
+    private func commandConsoleStatusColor(for session: ProjectSession) -> Color {
         commandRunStore.runningCount(for: session) > 0 ? WiseColors.positive : WiseColors.mute
     }
 
