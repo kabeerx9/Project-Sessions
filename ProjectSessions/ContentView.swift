@@ -280,139 +280,24 @@ struct ContentView: View {
     
     var body: some View {
         NavigationSplitView {
-            VStack(alignment: .leading, spacing: 12) {
-                HStack {
-                    Text("Project Sessions")
-                        .font(.headline)
-                    
-                    Spacer()
-                    
-                    Button("Create") {
-                        isShowingNewSessionForm = true
-                    }
-                }
-                .padding([.horizontal, .top])
-                
-                if sessions.isEmpty {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Image(systemName: "folder.badge.plus")
-                            .font(.title)
-                            .foregroundStyle(.secondary)
-                        
-                        Text("No sessions yet.")
-                            .font(.headline)
-                        
-                        Text("Create your first project session.")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-                    .padding()
-                    
-                    Spacer()
-                } else {
-                    List(selection: $selectedSessionID) {
-                        ForEach(sessions) { session in
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(session.name)
-                                    .font(.headline)
-                                
-                                Text("\(session.browser) · \(session.urls.count) URLs")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                            }
-                            .padding(.vertical, 4)
-                            .tag(session.id)
-                        }
-                        .onDelete(perform: deleteSessions)
-                    }
-                }
-            }
-            .navigationSplitViewColumnWidth(min: 220, ideal: 260)
+            SessionSidebarView(
+                sessions: sessions,
+                selectedSessionID: $selectedSessionID,
+                onCreateSession: {
+                    isShowingNewSessionForm = true
+                },
+                onDeleteSessions: deleteSessions
+            )
         } detail: {
-            if let selectedSession {
-                VStack(alignment: .leading, spacing: 20) {
-                    HStack(alignment: .top) {
-                        VStack(alignment: .leading, spacing: 6) {
-                            Text(selectedSession.name)
-                                .font(.largeTitle)
-                            
-                            Text(selectedSession.repositoryPath)
-                                .foregroundStyle(.secondary)
-                        }
-                        
-                        Spacer()
-                        
-                        Button("Restore Session") {
-                            restoreSession(selectedSession)
-                        }
-                        
-                        Button("Launch Session") {
-                            launchSession(selectedSession)
-                        }
-                        .disabled(selectedSession.urls.isEmpty)
-                        
-                        Button("Open Folder") {
-                            openRepositoryInFinder(selectedSession)
-                        }
-                        .disabled(selectedSession.repositoryPath.isEmpty)
-                        
-                        Button("Open in Cursor") {
-                            openRepositoryInCursor(selectedSession)
-                        }
-                        .disabled(selectedSession.repositoryPath.isEmpty)
-                        
-                        Button("Edit") {
-                            startEditing(selectedSession)
-                        }
-                        
-                        Button("Delete") {
-                            deleteSession(selectedSession)
-                        }
-                    }
-                    
-                    Divider()
-                    
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Browser")
-                            .font(.headline)
-                        
-                        Text(selectedSession.browser)
-                            .foregroundStyle(.secondary)
-                    }
-                    
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("URLs")
-                            .font(.headline)
-                        
-                        if selectedSession.urls.isEmpty {
-                            Text("No URLs saved.")
-                                .foregroundStyle(.secondary)
-                        } else {
-                            ForEach(selectedSession.urls, id: \.self) { url in
-                                Text(url)
-                                    .foregroundStyle(.secondary)
-                            }
-                        }
-                    }
-                    
-                    Spacer()
-                }
-                .padding()
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-            } else {
-                VStack(spacing: 12) {
-                    Image(systemName: "sidebar.left")
-                        .font(.system(size: 44))
-                        .foregroundStyle(.secondary)
-                    
-                    Text("Select a session")
-                        .font(.title2)
-                    
-                    Text("Choose a project session from the sidebar to view its details.")
-                        .foregroundStyle(.secondary)
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-            }
+            SessionDetailView(
+                session: selectedSession,
+                onRestore: restoreSession,
+                onLaunch: launchSession,
+                onOpenFolder: openRepositoryInFinder,
+                onOpenInCursor: openRepositoryInCursor,
+                onEdit: startEditing,
+                onDelete: deleteSession
+            )
         }
         .onAppear {
             loadSessions()

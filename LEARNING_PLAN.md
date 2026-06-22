@@ -370,6 +370,7 @@ Navigation in SwiftUI is similar to moving between screens or routes in React, b
 - Selection state = selected item id
 - Detail view = route/page for selected data
 - Fallback detail = empty route state
+- Child navigation view = React route/layout component
 
 ### Concepts To Learn
 
@@ -379,6 +380,7 @@ Navigation in SwiftUI is similar to moving between screens or routes in React, b
 - [x] Detail views
 - [x] Selection state
 - [x] macOS navigation conventions
+- [x] Passing action closures into child views
 
 ### Project Implementation
 
@@ -386,6 +388,8 @@ Navigation in SwiftUI is similar to moving between screens or routes in React, b
 - [x] Create a detail view for the selected session
 - [x] Show session details on the right side
 - [x] Add a fallback detail view when nothing is selected
+- [x] Extract the sidebar into `SessionSidebarView`
+- [x] Extract the detail pane into `SessionDetailView`
 
 ### Example Exercise
 
