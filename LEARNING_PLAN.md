@@ -339,8 +339,9 @@ Forms let the user create and edit data. In this app, forms are needed for creat
 - [ ] `Toggle`
 - [ ] `Picker`
 - [x] Bindings with `$`
-- [ ] `@Binding`
+- [x] `@Binding`
 - [x] Sheet presentation
+- [x] Extracting reusable form views
 
 ### Project Implementation
 
@@ -350,6 +351,7 @@ Forms let the user create and edit data. In this app, forms are needed for creat
 - [x] Save form values into app state
 - [x] Persist form changes to `UserDefaults`
 - [x] Cancel editing
+- [x] Reuse one form view for create and edit sheets
 
 ### Example Exercise
 

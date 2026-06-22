@@ -54,15 +54,6 @@ struct ContentView: View {
     @State private var editSessionRepositoryPath = ""
     @State private var editSessionURLs: [String] = []
     @State private var editSessionURLDraft = ""
-    
-    private func addNewSessionURL() {
-        guard !newSessionURLDraft.isEmpty else {
-            return
-        }
-
-        newSessionURLs.append(newSessionURLDraft)
-        newSessionURLDraft = ""
-    }
 
     private func chooseRepositoryPathForNewSession() {
         guard let path = chooseRepositoryPath() else {
@@ -166,20 +157,12 @@ struct ContentView: View {
         }
     }
     
-    private var canSaveNewSession: Bool {
-        !newSessionName.isEmpty && !newSessionRepositoryPath.isEmpty
-    }
-    
     private func resetNewSessionForm() {
         newSessionName = ""
         newSessionBrowser = "Chrome"
         newSessionRepositoryPath = ""
         newSessionURLs = []
         newSessionURLDraft = ""
-    }
-    
-    private var canSaveEditedSession: Bool {
-        !editSessionName.isEmpty && !editSessionRepositoryPath.isEmpty
     }
 
     private func startEditing(_ session: ProjectSession) {
@@ -188,15 +171,6 @@ struct ContentView: View {
         editSessionBrowser = session.browser
         editSessionRepositoryPath = session.repositoryPath
         editSessionURLs = session.urls
-        editSessionURLDraft = ""
-    }
-
-    private func addEditSessionURL() {
-        guard !editSessionURLDraft.isEmpty else {
-            return
-        }
-
-        editSessionURLs.append(editSessionURLDraft)
         editSessionURLDraft = ""
     }
 
@@ -444,109 +418,56 @@ struct ContentView: View {
             loadSessions()
         }
         .sheet(isPresented: $isShowingNewSessionForm) {
-            Form {
-                TextField("Session name", text: $newSessionName)
-                TextField("Browser", text: $newSessionBrowser)
-                TextField("Repository path", text: $newSessionRepositoryPath)
-
-                Button("Choose Folder") {
+            SessionFormView(
+                title: nil,
+                name: $newSessionName,
+                browser: $newSessionBrowser,
+                repositoryPath: $newSessionRepositoryPath,
+                urls: $newSessionURLs,
+                urlDraft: $newSessionURLDraft,
+                onChooseFolder: {
                     chooseRepositoryPathForNewSession()
+                },
+                onCancel: {
+                    resetNewSessionForm()
+                    isShowingNewSessionForm = false
+                },
+                onSave: {
+                    let newSession = ProjectSession(
+                        id: UUID(),
+                        name: newSessionName,
+                        browser: newSessionBrowser,
+                        urls: newSessionURLs,
+                        repositoryPath: newSessionRepositoryPath
+                    )
+
+                    sessions.append(newSession)
+
+                    saveSessions()
+                    selectedSessionID = newSession.id
+                    resetNewSessionForm()
+                    isShowingNewSessionForm = false
                 }
-
-                TextField("URL", text: $newSessionURLDraft)
-
-                Button("Add URL") {
-                    addNewSessionURL()
-                }
-                .disabled(newSessionURLDraft.isEmpty)
-
-                ForEach(newSessionURLs, id: \.self) { url in
-                    HStack {
-                        Text(url)
-                        Spacer()
-                        Button("Remove") {
-                            newSessionURLs.removeAll { $0 == url }
-                        }
-                    }
-                }
-
-                HStack {
-                    Button("Cancel") {
-                        resetNewSessionForm()
-                        isShowingNewSessionForm = false
-                    }
-
-                    Spacer()
-
-                    Button("Save") {
-                        let newSession = ProjectSession(
-                            id: UUID(),
-                            name: newSessionName,
-                            browser: newSessionBrowser,
-                            urls: newSessionURLs,
-                            repositoryPath: newSessionRepositoryPath
-                        )
-                        
-                        sessions.append(
-                            newSession
-                        )
-
-                        saveSessions()
-                        selectedSessionID = newSession.id
-                        resetNewSessionForm()
-                        isShowingNewSessionForm = false
-                    }
-                    .disabled(!canSaveNewSession)
-                }
-            }
-            .padding()
-            .frame(width: 420)
+            )
         }
         .sheet(item: $editingSession) { _ in
-            Form {
-                Text("Edit Session")
-                    .font(.title)
-
-                TextField("Session name", text: $editSessionName)
-                TextField("Browser", text: $editSessionBrowser)
-                TextField("Repository path", text: $editSessionRepositoryPath)
-
-                Button("Choose Folder") {
+            SessionFormView(
+                title: "Edit Session",
+                name: $editSessionName,
+                browser: $editSessionBrowser,
+                repositoryPath: $editSessionRepositoryPath,
+                urls: $editSessionURLs,
+                urlDraft: $editSessionURLDraft,
+                onChooseFolder: {
                     chooseRepositoryPathForEditSession()
+                },
+                onCancel: {
+                    editingSession = nil
+                },
+                onSave: {
+                    saveEditedSession()
                 }
-
-                TextField("URL", text: $editSessionURLDraft)
-
-                Button("Add URL") {
-                    addEditSessionURL()
-                }
-                .disabled(editSessionURLDraft.isEmpty)
-
-                ForEach(editSessionURLs, id: \.self) { url in
-                    HStack {
-                        Text(url)
-                        Spacer()
-                        Button("Remove") {
-                            editSessionURLs.removeAll { $0 == url }
-                        }
-                    }
-                }
-
-                HStack {
-                    Button("Cancel") {
-                        editingSession = nil
-                    }
-
-                    Spacer()
-
-                    Button("Save") {
-                        saveEditedSession()
-                    }
-                    .disabled(!canSaveEditedSession)
-                }
-            }
-            .padding()
-            .frame(width: 420)
+            )
         }
     }
 }
