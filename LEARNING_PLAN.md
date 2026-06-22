@@ -410,21 +410,21 @@ macOS apps can open URLs, files, folders, and other apps. This is where Project 
 
 ### Concepts To Learn
 
-- [ ] `NSWorkspace`
-- [ ] Opening URLs
+- [x] `NSWorkspace`
+- [x] Opening URLs
 - [ ] Opening local folders
 - [ ] Launching apps
-- [ ] Basic error handling
+- [x] Basic error handling
 - [ ] App bundle identifiers
 - [ ] File paths and `URL(fileURLWithPath:)`
 
 ### Project Implementation
 
-- [ ] Launch all URLs for a session
+- [x] Launch all URLs for a session
 - [ ] Open a repository path in Finder
 - [ ] Open a repository path in Cursor
-- [ ] Add a "Launch Session" button
-- [ ] Show a simple failure message if something cannot be opened
+- [x] Add a "Launch Session" button
+- [x] Show a simple failure message if something cannot be opened
 
 ### Example Exercise
 
@@ -448,9 +448,9 @@ The Process API is for starting and controlling command-line programs. It should
 
 ### Concepts To Learn
 
-- [ ] `Process`
-- [ ] Executable paths
-- [ ] Arguments
+- [x] `Process`
+- [x] Executable paths
+- [x] Arguments
 - [ ] Working directories
 - [ ] Environment variables
 - [ ] Reading output later
@@ -596,6 +596,6 @@ Follow this order unless there is a specific reason to jump ahead:
 
 ## Current Next Step
 
-- [ ] Learn `NSWorkspace`
-- [ ] Launch saved URLs for the selected session
-- [ ] Add a "Launch Session" button
+- [ ] Open a repository path in Finder
+- [ ] Open a repository path in Cursor
+- [ ] Add browser-specific launch behavior

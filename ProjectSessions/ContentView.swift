@@ -88,6 +88,54 @@ struct ContentView: View {
         
         saveSessions()
     }
+
+    private func launchSession(_ session: ProjectSession) {
+        var urlsToOpen: [URL] = []
+        
+        for urlString in session.urls {
+            if let url = normalizedWebURL(from: urlString) {
+                urlsToOpen.append(url)
+            } else {
+                print("Skipping invalid URL: \(urlString)")
+            }
+        }
+        
+        for (index, url) in urlsToOpen.enumerated() {
+            let delay = Double(index) * 1.0
+
+            DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+                print("Opening URL: \(url.absoluteString)")
+                openURLWithSystemOpenCommand(url)
+            }
+        }
+    }
+
+    private func openURLWithSystemOpenCommand(_ url: URL) {
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/open")
+        process.arguments = [url.absoluteString]
+
+        do {
+            try process.run()
+        } catch {
+            print("Could not open URL with /usr/bin/open: \(url.absoluteString), error: \(error)")
+            NSWorkspace.shared.open(url)
+        }
+    }
+    
+    private func normalizedWebURL(from urlString: String) -> URL? {
+        let trimmedURLString = urlString.trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        guard !trimmedURLString.isEmpty else {
+            return nil
+        }
+        
+        if let url = URL(string: trimmedURLString), url.scheme != nil {
+            return url
+        }
+        
+        return URL(string: "https://\(trimmedURLString)")
+    }
     
     private func saveSessions() {
         do {
@@ -229,6 +277,11 @@ struct ContentView: View {
                         }
                         
                         Spacer()
+                        
+                        Button("Launch Session") {
+                            launchSession(selectedSession)
+                        }
+                        .disabled(selectedSession.urls.isEmpty)
                         
                         Button("Edit") {
                             startEditing(selectedSession)
