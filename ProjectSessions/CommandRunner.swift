@@ -21,6 +21,10 @@ final class CommandRunStore {
         runs.filter { $0.sessionID == session.id }
     }
 
+    func run(for command: WorkspaceCommand, in session: ProjectSession) -> CommandRun? {
+        runs.first { $0.sessionID == session.id && $0.commandID == command.id }
+    }
+
     func selectedRun(for session: ProjectSession) -> CommandRun? {
         let sessionRuns = runs(for: session)
 

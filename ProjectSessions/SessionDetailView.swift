@@ -332,33 +332,80 @@ struct SessionDetailView: View {
                         EmptyMessage("No commands saved.")
                     } else {
                         ForEach(session.commands) { command in
-                            VStack(alignment: .leading, spacing: 4) {
-                                HStack(spacing: 8) {
-                                    Image(systemName: "chevron.right")
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
-
-                                    Text(command.name.isEmpty ? command.command : command.name)
-                                        .font(.system(size: 13, weight: .semibold))
-                                        .lineLimit(1)
-
-                                    Spacer()
-
-                                }
-
-                                if !command.name.isEmpty {
-                                    Text(command.command)
-                                        .font(.system(size: 12, design: .monospaced))
-                                        .foregroundStyle(.secondary)
-                                        .lineLimit(1)
-                                        .truncationMode(.middle)
-                                        .padding(.leading, 20)
-                                }
-                            }
-                            .padding(.vertical, 4)
+                            commandRow(command, in: session)
                         }
                     }
                 }
+            }
+        }
+    }
+
+    private func commandRow(_ command: WorkspaceCommand, in session: ProjectSession) -> some View {
+        let run = commandRunStore.run(for: command, in: session)
+
+        return HStack(alignment: .center, spacing: 10) {
+            Circle()
+                .fill(commandStatusColor(for: run))
+                .frame(width: 8, height: 8)
+
+            VStack(alignment: .leading, spacing: 4) {
+                HStack(spacing: 8) {
+                    Text(command.name.isEmpty ? command.command : command.name)
+                        .font(.system(size: 13, weight: .semibold))
+                        .lineLimit(1)
+
+                    StatusPill(
+                        text: commandStatusText(for: run),
+                        color: commandStatusColor(for: run)
+                    )
+                }
+
+                if !command.name.isEmpty {
+                    Text(command.command)
+                        .font(.system(size: 12, design: .monospaced))
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                }
+            }
+
+            Spacer()
+
+            HStack(spacing: 8) {
+                Button {
+                    if let run, run.isRunning {
+                        commandRunStore.stop(run)
+                    } else {
+                        commandRunStore.start(command, for: session)
+                    }
+                } label: {
+                    Label(run?.isRunning == true ? "Stop" : "Run", systemImage: run?.isRunning == true ? "stop.fill" : "play.fill")
+                }
+                .controlSize(.small)
+                .disabled(session.repositoryPath.isEmpty)
+
+                Button {
+                    if let run {
+                        commandRunStore.restart(run, for: session)
+                    }
+                } label: {
+                    Label("Restart", systemImage: "arrow.clockwise")
+                }
+                .controlSize(.small)
+                .disabled(run == nil || session.repositoryPath.isEmpty)
+            }
+        }
+        .padding(10)
+        .background(WiseColors.canvas)
+        .clipShape(RoundedRectangle(cornerRadius: WiseRadii.md, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: WiseRadii.md, style: .continuous)
+                .stroke(commandRunStore.selectedRunID == run?.id ? WiseColors.primary.opacity(0.6) : WiseColors.border, lineWidth: 1)
+        }
+        .contentShape(Rectangle())
+        .onTapGesture {
+            if let run {
+                commandRunStore.selectedRunID = run.id
             }
         }
     }
@@ -424,6 +471,37 @@ struct SessionDetailView: View {
         case .stopped:
             WiseColors.warningDeep
         }
+    }
+
+    private func commandStatusText(for run: CommandRun?) -> String {
+        guard let run else {
+            return "Not Run"
+        }
+
+        switch run.status {
+        case .idle:
+            return "Idle"
+        case .running:
+            return "Running"
+        case .exited:
+            return "Exited"
+        case .failed:
+            if let exitCode = run.exitCode {
+                return "Failed \(exitCode)"
+            }
+
+            return "Failed"
+        case .stopped:
+            return "Stopped"
+        }
+    }
+
+    private func commandStatusColor(for run: CommandRun?) -> Color {
+        guard let run else {
+            return WiseColors.mute
+        }
+
+        return statusColor(for: run.status)
     }
 
 }
