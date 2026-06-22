@@ -1,7 +1,7 @@
 import Foundation
 import Observation
 
-enum ExperimentalCommandStatus: String {
+enum CommandRunStatus: String {
     case idle
     case running
     case exited
@@ -11,17 +11,17 @@ enum ExperimentalCommandStatus: String {
 
 @MainActor
 @Observable
-final class ExperimentalCommandRunStore {
-    private(set) var runs: [ExperimentalCommandRun] = []
-    var selectedRunID: ExperimentalCommandRun.ID?
+final class CommandRunStore {
+    private(set) var runs: [CommandRun] = []
+    var selectedRunID: CommandRun.ID?
 
     @ObservationIgnored private var shellEnvironment: [String: String]?
 
-    func runs(for session: ProjectSession) -> [ExperimentalCommandRun] {
+    func runs(for session: ProjectSession) -> [CommandRun] {
         runs.filter { $0.sessionID == session.id }
     }
 
-    func selectedRun(for session: ProjectSession) -> ExperimentalCommandRun? {
+    func selectedRun(for session: ProjectSession) -> CommandRun? {
         let sessionRuns = runs(for: session)
 
         if let selectedRunID,
@@ -60,7 +60,7 @@ final class ExperimentalCommandRunStore {
             runs.removeAll { $0.id == existingRun.id }
         }
 
-        let run = ExperimentalCommandRun(
+        let run = CommandRun(
             sessionID: session.id,
             commandID: command.id,
             title: displayName(for: command),
@@ -73,11 +73,11 @@ final class ExperimentalCommandRunStore {
         run.start(environment: resolvedShellEnvironment())
     }
 
-    func stop(_ run: ExperimentalCommandRun) {
+    func stop(_ run: CommandRun) {
         run.stop()
     }
 
-    func restart(_ run: ExperimentalCommandRun, for session: ProjectSession) {
+    func restart(_ run: CommandRun, for session: ProjectSession) {
         guard let command = session.commands.first(where: { $0.id == run.commandID }) else {
             return
         }
@@ -117,7 +117,7 @@ final class ExperimentalCommandRunStore {
 
 @MainActor
 @Observable
-final class ExperimentalCommandRun: Identifiable {
+final class CommandRun: Identifiable {
     let id = UUID()
     let sessionID: ProjectSession.ID
     let commandID: TerminalCommand.ID
@@ -125,7 +125,7 @@ final class ExperimentalCommandRun: Identifiable {
     let command: String
     let workingDirectory: String
 
-    private(set) var status: ExperimentalCommandStatus = .idle
+    private(set) var status: CommandRunStatus = .idle
     private(set) var pid: Int32?
     private(set) var exitCode: Int32?
     private(set) var output = ""

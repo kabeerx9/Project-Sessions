@@ -11,7 +11,7 @@ import SwiftUI
 struct ProjectSessionsApp: App {
     @State private var sessionStore = SessionStore()
     @State private var workspaceRuntimeStore = WorkspaceRuntimeStore()
-    @State private var experimentalCommandRunStore = ExperimentalCommandRunStore()
+    @State private var commandRunStore = CommandRunStore()
     @Environment(\.openWindow) private var openWindow
 
     var body: some Scene {
@@ -19,7 +19,7 @@ struct ProjectSessionsApp: App {
             ContentView(
                 sessionStore: sessionStore,
                 workspaceRuntimeStore: workspaceRuntimeStore,
-                experimentalCommandRunStore: experimentalCommandRunStore
+                commandRunStore: commandRunStore
             )
         }
         .defaultSize(width: 1000, height: 650)
@@ -36,7 +36,7 @@ struct ProjectSessionsApp: App {
                                 return
                             }
 
-                            experimentalCommandRunStore.startAll(for: session)
+                            commandRunStore.startAll(for: session)
                             workspaceRuntimeStore.markStarted(session)
                         }
 
@@ -49,7 +49,7 @@ struct ProjectSessionsApp: App {
                         }
 
                         Button("Shutdown Workspace") {
-                            experimentalCommandRunStore.stopAll(for: session)
+                            commandRunStore.stopAll(for: session)
                             workspaceRuntimeStore.markStopped(session)
                         }
                         .disabled(!workspaceRuntimeStore.isActive(session))

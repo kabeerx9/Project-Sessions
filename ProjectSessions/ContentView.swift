@@ -10,7 +10,7 @@ import SwiftUI
 struct ContentView: View {
     let sessionStore: SessionStore
     let workspaceRuntimeStore: WorkspaceRuntimeStore
-    let experimentalCommandRunStore: ExperimentalCommandRunStore
+    let commandRunStore: CommandRunStore
     @State private var selectedSessionID: ProjectSession.ID?
     
     @State private var isShowingNewSessionForm = false
@@ -138,13 +138,13 @@ struct ContentView: View {
                 SessionDetailView(
                     session: selectedSession,
                     workspaceRuntime: selectedSession.flatMap { workspaceRuntimeStore.runtime(for: $0) },
-                    experimentalCommandRunStore: experimentalCommandRunStore,
+                    commandRunStore: commandRunStore,
                     onRestore: { session in
                         guard SessionLauncher.restore(session) else {
                             return
                         }
 
-                        experimentalCommandRunStore.startAll(for: session)
+                        commandRunStore.startAll(for: session)
                         workspaceRuntimeStore.markStarted(session)
                     },
                     onLaunch: { session in
@@ -157,7 +157,7 @@ struct ContentView: View {
                         SessionLauncher.openRepositoryInCursor(session)
                     },
                     onShutdownWorkspace: { session in
-                        experimentalCommandRunStore.stopAll(for: session)
+                        commandRunStore.stopAll(for: session)
                         workspaceRuntimeStore.markStopped(session)
                     },
                     onCopyCommands: { session in
@@ -289,6 +289,6 @@ struct ContentView: View {
     ContentView(
         sessionStore: SessionStore(),
         workspaceRuntimeStore: WorkspaceRuntimeStore(),
-        experimentalCommandRunStore: ExperimentalCommandRunStore()
+        commandRunStore: CommandRunStore()
     )
 }

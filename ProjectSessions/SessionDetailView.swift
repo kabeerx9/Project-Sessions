@@ -4,7 +4,7 @@ import SwiftUI
 struct SessionDetailView: View {
     let session: ProjectSession?
     let workspaceRuntime: WorkspaceRuntime?
-    let experimentalCommandRunStore: ExperimentalCommandRunStore
+    let commandRunStore: CommandRunStore
     let onRestore: @MainActor (ProjectSession) -> Void
     let onLaunch: @MainActor (ProjectSession) -> Void
     let onOpenFolder: @MainActor (ProjectSession) -> Void
@@ -115,9 +115,9 @@ struct SessionDetailView: View {
                         .font(.caption)
                         .foregroundStyle(.secondary)
 
-                    Text("\(experimentalCommandRunStore.runningCount(for: session)) running")
+                    Text("\(commandRunStore.runningCount(for: session)) running")
                         .font(.caption)
-                        .foregroundStyle(experimentalCommandRunStore.runningCount(for: session) > 0 ? WiseColors.positive : .secondary)
+                        .foregroundStyle(commandRunStore.runningCount(for: session) > 0 ? WiseColors.positive : .secondary)
                 }
             }
         }
@@ -162,8 +162,8 @@ struct SessionDetailView: View {
     }
 
     private func nativeRunnerLab(_ session: ProjectSession) -> some View {
-        let runs = experimentalCommandRunStore.runs(for: session)
-        let selectedRun = experimentalCommandRunStore.selectedRun(for: session)
+        let runs = commandRunStore.runs(for: session)
+        let selectedRun = commandRunStore.selectedRun(for: session)
         let selectedOutput = selectedRun?.output ?? ""
         let logBottomID = "native-runner-log-bottom"
 
@@ -182,18 +182,18 @@ struct SessionDetailView: View {
 
                 HStack(spacing: 10) {
                     Button {
-                        experimentalCommandRunStore.startAll(for: session)
+                        commandRunStore.startAll(for: session)
                     } label: {
                         Label("Run All", systemImage: "play.fill")
                     }
                     .disabled(session.commands.isEmpty || session.repositoryPath.isEmpty)
 
                     Button {
-                        experimentalCommandRunStore.stopAll(for: session)
+                        commandRunStore.stopAll(for: session)
                     } label: {
                         Label("Stop All", systemImage: "stop.fill")
                     }
-                    .disabled(experimentalCommandRunStore.runningCount(for: session) == 0)
+                    .disabled(commandRunStore.runningCount(for: session) == 0)
 
                     Spacer()
 
@@ -209,7 +209,7 @@ struct SessionDetailView: View {
                         HStack(spacing: 8) {
                             ForEach(runs) { run in
                                 Button {
-                                    experimentalCommandRunStore.selectedRunID = run.id
+                                    commandRunStore.selectedRunID = run.id
                                 } label: {
                                     HStack(spacing: 6) {
                                         Circle()
@@ -231,7 +231,7 @@ struct SessionDetailView: View {
                 HStack(spacing: 10) {
                     Button {
                         if let selectedRun {
-                            experimentalCommandRunStore.stop(selectedRun)
+                            commandRunStore.stop(selectedRun)
                         }
                     } label: {
                         Label("Stop", systemImage: "stop.fill")
@@ -240,7 +240,7 @@ struct SessionDetailView: View {
 
                     Button {
                         if let selectedRun {
-                            experimentalCommandRunStore.restart(selectedRun, for: session)
+                            commandRunStore.restart(selectedRun, for: session)
                         }
                     } label: {
                         Label("Restart", systemImage: "arrow.clockwise")
@@ -402,8 +402,8 @@ struct SessionDetailView: View {
     }
 
     private func nativeRunnerStatusText(for session: ProjectSession) -> String {
-        let runningCount = experimentalCommandRunStore.runningCount(for: session)
-        let runCount = experimentalCommandRunStore.runs(for: session).count
+        let runningCount = commandRunStore.runningCount(for: session)
+        let runCount = commandRunStore.runs(for: session).count
 
         if runningCount > 0 {
             return "\(runningCount) Running"
@@ -417,10 +417,10 @@ struct SessionDetailView: View {
     }
 
     private func nativeRunnerStatusColor(for session: ProjectSession) -> Color {
-        experimentalCommandRunStore.runningCount(for: session) > 0 ? WiseColors.positive : WiseColors.mute
+        commandRunStore.runningCount(for: session) > 0 ? WiseColors.positive : WiseColors.mute
     }
 
-    private func statusColor(for status: ExperimentalCommandStatus) -> Color {
+    private func statusColor(for status: CommandRunStatus) -> Color {
         switch status {
         case .idle:
             WiseColors.mute
