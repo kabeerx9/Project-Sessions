@@ -6,6 +6,7 @@ struct SessionDetailView: View {
     let onLaunch: (ProjectSession) -> Void
     let onOpenFolder: (ProjectSession) -> Void
     let onOpenInCursor: (ProjectSession) -> Void
+    let onOpenInGhostty: (ProjectSession) -> Void
     let onCopyCommands: (ProjectSession) -> Void
     let onCopyRepositoryPathAndCommands: (ProjectSession) -> Void
     let onCopyShellChain: (ProjectSession) -> Void
@@ -42,6 +43,11 @@ struct SessionDetailView: View {
 
                     Button("Open in Cursor") {
                         onOpenInCursor(session)
+                    }
+                    .disabled(session.repositoryPath.isEmpty)
+
+                    Button("Open in Ghostty") {
+                        onOpenInGhostty(session)
                     }
                     .disabled(session.repositoryPath.isEmpty)
 
@@ -144,6 +150,7 @@ struct SessionDetailView: View {
         onLaunch: { _ in },
         onOpenFolder: { _ in },
         onOpenInCursor: { _ in },
+        onOpenInGhostty: { _ in },
         onCopyCommands: { _ in },
         onCopyRepositoryPathAndCommands: { _ in },
         onCopyShellChain: { _ in },

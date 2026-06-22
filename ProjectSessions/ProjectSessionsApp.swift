@@ -36,6 +36,11 @@ struct ProjectSessionsApp: App {
                             SessionLauncher.openRepositoryInCursor(session)
                         }
 
+                        Button("Open in Ghostty") {
+                            SessionLauncher.openRepositoryInGhostty(session)
+                        }
+                        .disabled(session.repositoryPath.isEmpty)
+
                         Button("Copy Commands") {
                             CommandClipboard.copyCommands(for: session)
                         }

@@ -120,6 +120,7 @@ struct ContentView: View {
                 onLaunch: SessionLauncher.launchURLs,
                 onOpenFolder: SessionLauncher.openRepositoryInFinder,
                 onOpenInCursor: SessionLauncher.openRepositoryInCursor,
+                onOpenInGhostty: SessionLauncher.openRepositoryInGhostty,
                 onCopyCommands: CommandClipboard.copyCommands,
                 onCopyRepositoryPathAndCommands: CommandClipboard.copyRepositoryPathAndCommands,
                 onCopyShellChain: CommandClipboard.copyShellChain,

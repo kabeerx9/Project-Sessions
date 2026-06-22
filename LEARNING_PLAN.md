@@ -572,6 +572,7 @@ These should wait until the MVP is complete.
 - [ ] Browser profile support
 - [ ] Open multiple browser tabs
 - [ ] Open Cursor workspace
+- [x] Open Ghostty at the project folder
 - [ ] Open multiple Ghostty tabs or windows
 - [ ] Run terminal commands in separate tabs for long-running dev servers
 

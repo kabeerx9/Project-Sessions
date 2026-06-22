@@ -65,6 +65,25 @@ enum SessionLauncher {
         }
     }
 
+    static func openRepositoryInGhostty(_ session: ProjectSession) {
+        let expandedRepositoryPath = expandedPath(session.repositoryPath)
+
+        guard FileManager.default.fileExists(atPath: expandedRepositoryPath) else {
+            print("Repository path does not exist: \(expandedRepositoryPath)")
+            return
+        }
+
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/open")
+        process.arguments = ["-a", "Ghostty", expandedRepositoryPath]
+
+        do {
+            try process.run()
+        } catch {
+            print("Could not open repository in Ghostty: \(error)")
+        }
+    }
+
     private static func openURLWithSystemOpenCommand(_ url: URL, browser: Browser) {
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/usr/bin/open")
