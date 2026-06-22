@@ -10,7 +10,6 @@ import SwiftUI
 @main
 struct ProjectSessionsApp: App {
     @State private var sessionStore = SessionStore()
-    @State private var terminalProcessStore = TerminalProcessStore()
     @State private var workspaceRuntimeStore = WorkspaceRuntimeStore()
     @State private var experimentalCommandRunStore = ExperimentalCommandRunStore()
     @Environment(\.openWindow) private var openWindow
@@ -19,7 +18,6 @@ struct ProjectSessionsApp: App {
         WindowGroup(id: "main") {
             ContentView(
                 sessionStore: sessionStore,
-                terminalProcessStore: terminalProcessStore,
                 workspaceRuntimeStore: workspaceRuntimeStore,
                 experimentalCommandRunStore: experimentalCommandRunStore
             )
@@ -35,7 +33,7 @@ struct ProjectSessionsApp: App {
                         Button("Start Session") {
                             SessionStartOverlay.show(sessionName: session.name)
                             workspaceRuntimeStore.markStarted(session)
-                            SessionLauncher.restore(session, terminalProcessStore: terminalProcessStore)
+                            SessionLauncher.restore(session)
                         }
 
                         Button("Open URLs") {
@@ -46,34 +44,10 @@ struct ProjectSessionsApp: App {
                             SessionLauncher.openRepositoryInCursor(session)
                         }
 
-                        Button("Run Commands in Terminal") {
-                            SessionLauncher.runCommandsInTerminal(
-                                for: session,
-                                terminalProcessStore: terminalProcessStore
-                            )
-                        }
-                        .disabled(session.repositoryPath.isEmpty || session.commands.isEmpty)
-
-                        Button("Stop Commands") {
-                            SessionLauncher.stopTerminalProcesses(
-                                for: session,
-                                terminalProcessStore: terminalProcessStore
-                            )
-                        }
-                        .disabled(terminalProcessStore.runningCount(for: session) == 0)
-
                         Button("Shutdown Workspace") {
-                            SessionLauncher.shutdownWorkspace(
-                                for: session,
-                                terminalProcessStore: terminalProcessStore
-                            )
                             workspaceRuntimeStore.markStopped(session)
                         }
-                        .disabled(!workspaceRuntimeStore.isActive(session) && terminalProcessStore.records(for: session).isEmpty)
-
-                        Button("Refresh Health") {
-                            terminalProcessStore.refresh()
-                        }
+                        .disabled(!workspaceRuntimeStore.isActive(session))
 
                         Button("Copy Commands") {
                             CommandClipboard.copyCommands(for: session)

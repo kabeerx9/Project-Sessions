@@ -4,17 +4,12 @@ import SwiftUI
 struct SessionDetailView: View {
     let session: ProjectSession?
     let workspaceRuntime: WorkspaceRuntime?
-    let terminalProcessRecords: [TerminalProcessRecord]
-    let terminalRunningCount: Int
     let experimentalCommandRunStore: ExperimentalCommandRunStore
     let onRestore: @MainActor (ProjectSession) -> Void
     let onLaunch: @MainActor (ProjectSession) -> Void
     let onOpenFolder: @MainActor (ProjectSession) -> Void
     let onOpenInCursor: @MainActor (ProjectSession) -> Void
-    let onRunCommandsInTerminal: @MainActor (ProjectSession) -> Void
-    let onStopTerminalProcesses: @MainActor (ProjectSession) -> Void
     let onShutdownWorkspace: @MainActor (ProjectSession) -> Void
-    let onRefreshTerminalProcesses: @MainActor () -> Void
     let onCopyCommands: @MainActor (ProjectSession) -> Void
     let onCopyRepositoryPathAndCommands: @MainActor (ProjectSession) -> Void
     let onCopyShellChain: @MainActor (ProjectSession) -> Void
@@ -32,10 +27,6 @@ struct SessionDetailView: View {
                         quickActions(session)
                         nativeRunnerLab(session)
                         detailsGrid(session)
-
-                        if !terminalProcessRecords.isEmpty {
-                            processHealth
-                        }
                     }
                     .padding(24)
                     .frame(maxWidth: 1080, alignment: .topLeading)
@@ -114,14 +105,6 @@ struct SessionDetailView: View {
                     .buttonStyle(.borderedProminent)
                     .tint(isWorkspaceActive ? WiseColors.negative : WiseColors.primary)
 
-                    if !isWorkspaceActive && !terminalProcessRecords.isEmpty {
-                        Button {
-                            onShutdownWorkspace(session)
-                        } label: {
-                            Label("Clean Up Workspace", systemImage: "power")
-                        }
-                    }
-
                     Spacer()
 
                     Text("\(session.urls.count) URLs")
@@ -132,9 +115,9 @@ struct SessionDetailView: View {
                         .font(.caption)
                         .foregroundStyle(.secondary)
 
-                    Text("\(terminalRunningCount) running")
+                    Text("\(experimentalCommandRunStore.runningCount(for: session)) running")
                         .font(.caption)
-                        .foregroundStyle(terminalRunningCount > 0 ? WiseColors.positive : .secondary)
+                        .foregroundStyle(experimentalCommandRunStore.runningCount(for: session) > 0 ? WiseColors.positive : .secondary)
                 }
             }
         }
@@ -173,14 +156,6 @@ struct SessionDetailView: View {
                         onOpenInCursor(session)
                     }
 
-                    ActionButton(
-                        title: "Run Commands",
-                        subtitle: session.commands.isEmpty ? "No commands saved" : "Terminal",
-                        systemImage: "terminal",
-                        isDisabled: session.repositoryPath.isEmpty || session.commands.isEmpty
-                    ) {
-                        onRunCommandsInTerminal(session)
-                    }
                 }
             }
         }
@@ -397,44 +372,6 @@ struct SessionDetailView: View {
         }
     }
 
-    private var processHealth: some View {
-        Panel {
-            VStack(alignment: .leading, spacing: 14) {
-                HStack {
-                    SectionHeader("Process Health", systemImage: "waveform.path.ecg")
-
-                    Spacer()
-
-                    Button {
-                        onRefreshTerminalProcesses()
-                    } label: {
-                        Label("Refresh", systemImage: "arrow.clockwise")
-                    }
-                    .controlSize(.small)
-                }
-
-                ForEach(terminalProcessRecords) { record in
-                    HStack(spacing: 10) {
-                        Circle()
-                            .fill(statusColor(for: record.status))
-                            .frame(width: 8, height: 8)
-
-                        Text(record.title)
-                            .font(.system(size: 13, weight: .medium))
-                            .lineLimit(1)
-
-                        Spacer()
-
-                        Text(record.status.rawValue.capitalized)
-                            .font(.caption)
-                            .foregroundStyle(statusColor(for: record.status))
-                    }
-                    .padding(.vertical, 5)
-                }
-            }
-        }
-    }
-
     private var isWorkspaceActive: Bool {
         workspaceRuntime?.status == .active
     }
@@ -462,19 +399,6 @@ struct SessionDetailView: View {
         }
 
         return "Open since \(workspaceRuntime.startedAt.formatted(date: .omitted, time: .shortened))"
-    }
-
-    private func statusColor(for status: TerminalProcessStatus) -> Color {
-        switch status {
-        case .running:
-            WiseColors.positive
-        case .stopped:
-            WiseColors.warningDeep
-        case .launching:
-            WiseColors.accentCyan
-        case .exited:
-            WiseColors.mute
-        }
     }
 
     private func nativeRunnerStatusText(for session: ProjectSession) -> String {

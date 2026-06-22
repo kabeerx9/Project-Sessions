@@ -9,7 +9,6 @@ import SwiftUI
 
 struct ContentView: View {
     let sessionStore: SessionStore
-    let terminalProcessStore: TerminalProcessStore
     let workspaceRuntimeStore: WorkspaceRuntimeStore
     let experimentalCommandRunStore: ExperimentalCommandRunStore
     @State private var selectedSessionID: ProjectSession.ID?
@@ -139,12 +138,10 @@ struct ContentView: View {
                 SessionDetailView(
                     session: selectedSession,
                     workspaceRuntime: selectedSession.flatMap { workspaceRuntimeStore.runtime(for: $0) },
-                    terminalProcessRecords: selectedSession.map { terminalProcessStore.records(for: $0) } ?? [],
-                    terminalRunningCount: selectedSession.map { terminalProcessStore.runningCount(for: $0) } ?? 0,
                     experimentalCommandRunStore: experimentalCommandRunStore,
                     onRestore: { session in
                         workspaceRuntimeStore.markStarted(session)
-                        SessionLauncher.restore(session, terminalProcessStore: terminalProcessStore)
+                        SessionLauncher.restore(session)
                     },
                     onLaunch: { session in
                         SessionLauncher.launchURLs(for: session)
@@ -155,18 +152,8 @@ struct ContentView: View {
                     onOpenInCursor: { session in
                         SessionLauncher.openRepositoryInCursor(session)
                     },
-                    onRunCommandsInTerminal: { session in
-                        SessionLauncher.runCommandsInTerminal(for: session, terminalProcessStore: terminalProcessStore)
-                    },
-                    onStopTerminalProcesses: { session in
-                        SessionLauncher.stopTerminalProcesses(for: session, terminalProcessStore: terminalProcessStore)
-                    },
                     onShutdownWorkspace: { session in
-                        SessionLauncher.shutdownWorkspace(for: session, terminalProcessStore: terminalProcessStore)
                         workspaceRuntimeStore.markStopped(session)
-                    },
-                    onRefreshTerminalProcesses: {
-                        terminalProcessStore.refresh()
                     },
                     onCopyCommands: { session in
                         CommandClipboard.copyCommands(for: session)
@@ -296,7 +283,6 @@ struct ContentView: View {
 #Preview {
     ContentView(
         sessionStore: SessionStore(),
-        terminalProcessStore: TerminalProcessStore(),
         workspaceRuntimeStore: WorkspaceRuntimeStore(),
         experimentalCommandRunStore: ExperimentalCommandRunStore()
     )
