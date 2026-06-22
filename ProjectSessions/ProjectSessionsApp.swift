@@ -16,5 +16,17 @@ struct ProjectSessionsApp: App {
             ContentView(sessionStore: sessionStore)
         }
         .defaultSize(width: 1000, height: 650)
+
+        MenuBarExtra("Project Sessions", systemImage: "folder") {
+            if sessionStore.sessions.isEmpty {
+                Text("No sessions")
+            } else {
+                ForEach(sessionStore.sessions) { session in
+                    Button(session.name) {
+                        SessionLauncher.restore(session)
+                    }
+                }
+            }
+        }
     }
 }

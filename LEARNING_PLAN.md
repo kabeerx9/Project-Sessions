@@ -518,18 +518,18 @@ After the MVP works, improve how the app feels as a native macOS application.
 
 ### Concepts To Learn
 
-- [ ] `MenuBarExtra`
-- [ ] Menu bar app behavior
-- [ ] Commands inside a menu
+- [x] `MenuBarExtra`
+- [x] Menu bar app behavior
+- [x] Commands inside a menu
 - [x] Sharing state between windows and menu bar
 - [x] `@Observable` store objects
 
 ### Project Implementation
 
-- [ ] Add a menu bar item
-- [ ] List saved sessions in the menu bar
-- [ ] Launch a session from the menu bar
-- [ ] Keep the main window available for editing
+- [x] Add a menu bar item
+- [x] List saved sessions in the menu bar
+- [x] Launch a session from the menu bar
+- [x] Keep the main window available for editing
 - [x] Move session state into `SessionStore`
 - [x] Move persistence out of `ContentView`
 

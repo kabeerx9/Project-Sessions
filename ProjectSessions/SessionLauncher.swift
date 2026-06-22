@@ -1,0 +1,109 @@
+import AppKit
+import Foundation
+
+enum SessionLauncher {
+    static func restore(_ session: ProjectSession) {
+        launchURLs(for: session)
+        openRepositoryInCursor(session)
+    }
+
+    static func launchURLs(for session: ProjectSession) {
+        var urlsToOpen: [URL] = []
+
+        for urlString in session.urls {
+            if let url = normalizedWebURL(from: urlString) {
+                urlsToOpen.append(url)
+            } else {
+                print("Skipping invalid URL: \(urlString)")
+            }
+        }
+
+        for (index, url) in urlsToOpen.enumerated() {
+            let delay = Double(index) * 1.0
+
+            DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+                print("Opening URL: \(url.absoluteString)")
+                openURLWithSystemOpenCommand(url, browser: session.browser)
+            }
+        }
+    }
+
+    static func openRepositoryInFinder(_ session: ProjectSession) {
+        let expandedRepositoryPath = expandedPath(session.repositoryPath)
+        let repositoryURL = URL(fileURLWithPath: expandedRepositoryPath)
+
+        guard FileManager.default.fileExists(atPath: expandedRepositoryPath) else {
+            print("Repository path does not exist: \(expandedRepositoryPath)")
+            return
+        }
+
+        print("Opening repository folder: \(expandedRepositoryPath)")
+
+        let didOpen = NSWorkspace.shared.open(repositoryURL)
+
+        if !didOpen {
+            print("Could not open repository folder: \(expandedRepositoryPath)")
+        }
+    }
+
+    static func openRepositoryInCursor(_ session: ProjectSession) {
+        let expandedRepositoryPath = expandedPath(session.repositoryPath)
+
+        guard FileManager.default.fileExists(atPath: expandedRepositoryPath) else {
+            print("Repository path does not exist: \(expandedRepositoryPath)")
+            return
+        }
+
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/open")
+        process.arguments = ["-a", "Cursor", expandedRepositoryPath]
+
+        do {
+            try process.run()
+        } catch {
+            print("Could not open repository in Cursor: \(error)")
+        }
+    }
+
+    private static func openURLWithSystemOpenCommand(_ url: URL, browser: Browser) {
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/open")
+        process.arguments = ["-a", browser.appName, url.absoluteString]
+
+        do {
+            try process.run()
+        } catch {
+            print("Could not open URL in \(browser.appName): \(url.absoluteString), error: \(error)")
+            NSWorkspace.shared.open(url)
+        }
+    }
+
+    private static func normalizedWebURL(from urlString: String) -> URL? {
+        let trimmedURLString = urlString.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        guard !trimmedURLString.isEmpty else {
+            return nil
+        }
+
+        if let url = URL(string: trimmedURLString), url.scheme != nil {
+            return url
+        }
+
+        return URL(string: "https://\(trimmedURLString)")
+    }
+
+    private static func expandedPath(_ path: String) -> String {
+        let trimmedPath = path.trimmingCharacters(in: .whitespacesAndNewlines)
+        let homeDirectory = FileManager.default.homeDirectoryForCurrentUser.path
+
+        if trimmedPath.hasPrefix("~/") {
+            return homeDirectory + trimmedPath.dropFirst()
+        }
+
+        if trimmedPath.hasPrefix("/") {
+            return trimmedPath
+        }
+
+        return "\(homeDirectory)/\(trimmedPath)"
+    }
+}
