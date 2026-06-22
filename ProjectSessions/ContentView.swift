@@ -19,21 +19,24 @@ struct ContentView: View {
             name: "Fantasy App",
             browser: "Chrome",
             urls: ["https://github.com", "http://localhost:3000"],
-            repositoryPath: "~/Projects/fantasy-app"
+            repositoryPath: "~/Projects/fantasy-app",
+            commands: ["pnpm dev", "expo start"]
         ),
         ProjectSession(
             id : UUID(),
             name: "Dashboard",
             browser: "Chrome",
             urls: ["https://figma.com"],
-            repositoryPath: "~/Projects/dashboard"
+            repositoryPath: "~/Projects/dashboard",
+            commands: ["npm run dev"]
         ),
         ProjectSession(
             id : UUID(),
             name: "SaaS",
             browser: "Safari",
             urls: ["https://developer.apple.com"],
-            repositoryPath: "~/Projects/saas"
+            repositoryPath: "~/Projects/saas",
+            commands: []
         )
     ]
     @State private var selectedSessionID: ProjectSession.ID?
@@ -46,6 +49,8 @@ struct ContentView: View {
     @State private var newSessionRepositoryPath = ""
     @State private var newSessionURLs: [String] = []
     @State private var newSessionURLDraft = ""
+    @State private var newSessionCommands: [String] = []
+    @State private var newSessionCommandDraft = ""
     
     
     @State private var editingSession: ProjectSession?
@@ -54,6 +59,8 @@ struct ContentView: View {
     @State private var editSessionRepositoryPath = ""
     @State private var editSessionURLs: [String] = []
     @State private var editSessionURLDraft = ""
+    @State private var editSessionCommands: [String] = []
+    @State private var editSessionCommandDraft = ""
 
     private func chooseRepositoryPathForNewSession() {
         guard let path = chooseRepositoryPath() else {
@@ -163,6 +170,8 @@ struct ContentView: View {
         newSessionRepositoryPath = ""
         newSessionURLs = []
         newSessionURLDraft = ""
+        newSessionCommands = []
+        newSessionCommandDraft = ""
     }
 
     private func startEditing(_ session: ProjectSession) {
@@ -172,6 +181,8 @@ struct ContentView: View {
         editSessionRepositoryPath = session.repositoryPath
         editSessionURLs = session.urls
         editSessionURLDraft = ""
+        editSessionCommands = session.commands
+        editSessionCommandDraft = ""
     }
 
     private func chooseRepositoryPathForEditSession() {
@@ -196,7 +207,8 @@ struct ContentView: View {
             name: editSessionName,
             browser: editSessionBrowser,
             urls: editSessionURLs,
-            repositoryPath: editSessionRepositoryPath
+            repositoryPath: editSessionRepositoryPath,
+            commands: editSessionCommands
         )
 
         saveSessions()
@@ -310,6 +322,8 @@ struct ContentView: View {
                 repositoryPath: $newSessionRepositoryPath,
                 urls: $newSessionURLs,
                 urlDraft: $newSessionURLDraft,
+                commands: $newSessionCommands,
+                commandDraft: $newSessionCommandDraft,
                 onChooseFolder: {
                     chooseRepositoryPathForNewSession()
                 },
@@ -323,7 +337,8 @@ struct ContentView: View {
                         name: newSessionName,
                         browser: newSessionBrowser,
                         urls: newSessionURLs,
-                        repositoryPath: newSessionRepositoryPath
+                        repositoryPath: newSessionRepositoryPath,
+                        commands: newSessionCommands
                     )
 
                     sessions.append(newSession)
@@ -343,6 +358,8 @@ struct ContentView: View {
                 repositoryPath: $editSessionRepositoryPath,
                 urls: $editSessionURLs,
                 urlDraft: $editSessionURLDraft,
+                commands: $editSessionCommands,
+                commandDraft: $editSessionCommandDraft,
                 onChooseFolder: {
                     chooseRepositoryPathForEditSession()
                 },

@@ -22,6 +22,7 @@ The first version should support:
 - [ ] Store a session name
 - [ ] Store browser URLs
 - [ ] Store a repository path
+- [ ] Store terminal commands
 - [ ] Launch URLs in a browser
 - [ ] Open the repository in Cursor
 - [ ] Persist sessions locally
@@ -465,7 +466,8 @@ The Process API is for starting and controlling command-line programs. It should
 ### Project Implementation
 
 - [ ] Explore how a command could be launched
-- [ ] Defer automatic terminal command execution until after the MVP
+- [x] Store terminal commands without running them
+- [x] Defer automatic terminal command execution until after the MVP
 - [ ] Decide whether terminal control belongs in the app
 
 ## Section 11: macOS App Polish

@@ -76,6 +76,21 @@ struct SessionDetailView: View {
                     }
                 }
 
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Commands")
+                        .font(.headline)
+
+                    if session.commands.isEmpty {
+                        Text("No commands saved.")
+                            .foregroundStyle(.secondary)
+                    } else {
+                        ForEach(session.commands, id: \.self) { command in
+                            Text(command)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                }
+
                 Spacer()
             }
             .padding()
@@ -104,7 +119,8 @@ struct SessionDetailView: View {
             name: "Fantasy App",
             browser: "Chrome",
             urls: ["https://github.com", "http://localhost:3000"],
-            repositoryPath: "~/Projects/fantasy-app"
+            repositoryPath: "~/Projects/fantasy-app",
+            commands: ["pnpm dev", "expo start"]
         ),
         onRestore: { _ in },
         onLaunch: { _ in },
