@@ -1,39 +1,41 @@
 import SwiftUI
 
 struct WiseColors {
-    static let primary = Color(hex: 0x9FE870)
-    static let onPrimary = Color(hex: 0x0E0F0C)
-    static let primaryActive = Color(hex: 0xCDFFAD)
-    static let primaryNeutral = Color(hex: 0xC5EDAB)
-    static let primaryPale = Color(hex: 0xE2F6D5)
-    
-    static let ink = Color(hex: 0x0E0F0C)
-    static let inkDeep = Color(hex: 0x163300)
-    static let body = Color(hex: 0x454745)
-    static let mute = Color(hex: 0x868685)
-    
-    static let canvas = Color(hex: 0xFFFFFF)
-    static let canvasSoft = Color(hex: 0xE8EBE6)
-    
-    static let positive = Color(hex: 0x2EAD4B)
-    static let positiveDeep = Color(hex: 0x054D28)
-    static let warning = Color(hex: 0xFFD11A)
-    static let warningDeep = Color(hex: 0xB86700)
-    static let warningContent = Color(hex: 0x4A3B1C)
-    static let negative = Color(hex: 0xD03238)
-    static let negativeDeep = Color(hex: 0xA72027)
-    static let negativeDarkest = Color(hex: 0xA7000D)
-    static let negativeBg = Color(hex: 0x320707)
-    
-    static let accentOrange = Color(hex: 0xFFC091)
-    static let accentCyan = Color(hex: 0x38C8FF)
+    static let primary = Color.accentColor
+    static let onPrimary = Color.white
+    static let primaryActive = Color.accentColor.opacity(0.18)
+    static let primaryNeutral = Color.accentColor.opacity(0.12)
+    static let primaryPale = Color.accentColor.opacity(0.08)
+
+    static let ink = Color.primary
+    static let inkDeep = Color.primary
+    static let body = Color.secondary
+    static let mute = Color.secondary.opacity(0.78)
+
+    static let canvas = Color(nsColor: .controlBackgroundColor)
+    static let canvasSoft = Color(nsColor: .windowBackgroundColor)
+    static let panel = Color(nsColor: .textBackgroundColor)
+    static let border = Color.primary.opacity(0.10)
+
+    static let positive = Color.green
+    static let positiveDeep = Color.green
+    static let warning = Color.orange
+    static let warningDeep = Color.orange
+    static let warningContent = Color.orange
+    static let negative = Color.red
+    static let negativeDeep = Color.red
+    static let negativeDarkest = Color.red
+    static let negativeBg = Color.red.opacity(0.12)
+
+    static let accentOrange = Color.orange
+    static let accentCyan = Color.cyan
 }
 
 struct WiseRadii {
-    static let sm: CGFloat = 8
-    static let md: CGFloat = 12
-    static let lg: CGFloat = 16
-    static let xl: CGFloat = 24
+    static let sm: CGFloat = 6
+    static let md: CGFloat = 8
+    static let lg: CGFloat = 10
+    static let xl: CGFloat = 12
 }
 
 extension Color {

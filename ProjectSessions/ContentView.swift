@@ -276,7 +276,6 @@ struct ContentView: View {
                 Text(deleteAlertMessage)
             }
         }
-        .preferredColorScheme(.light)
     }
 
     private var deleteAlertTitle: String {

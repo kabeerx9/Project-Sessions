@@ -22,7 +22,6 @@ struct ProjectSessionsApp: App {
                 workspaceRuntimeStore: workspaceRuntimeStore
             )
         }
-        .windowStyle(.hiddenTitleBar)
         .defaultSize(width: 1000, height: 650)
 
         MenuBarExtra("Project Sessions", systemImage: "folder") {
