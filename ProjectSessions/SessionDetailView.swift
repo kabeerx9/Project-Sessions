@@ -2,11 +2,15 @@ import SwiftUI
 
 struct SessionDetailView: View {
     let session: ProjectSession?
+    let terminalProcessRecords: [TerminalProcessRecord]
+    let terminalRunningCount: Int
     let onRestore: @MainActor (ProjectSession) -> Void
     let onLaunch: @MainActor (ProjectSession) -> Void
     let onOpenFolder: @MainActor (ProjectSession) -> Void
     let onOpenInCursor: @MainActor (ProjectSession) -> Void
     let onRunCommandsInTerminal: @MainActor (ProjectSession) -> Void
+    let onStopTerminalProcesses: @MainActor (ProjectSession) -> Void
+    let onRefreshTerminalProcesses: @MainActor () -> Void
     let onCopyCommands: @MainActor (ProjectSession) -> Void
     let onCopyRepositoryPathAndCommands: @MainActor (ProjectSession) -> Void
     let onCopyShellChain: @MainActor (ProjectSession) -> Void
@@ -52,6 +56,15 @@ struct SessionDetailView: View {
                     }
                     .disabled(session.repositoryPath.isEmpty || session.commands.isEmpty)
 
+                    Button("Stop Commands") {
+                        onStopTerminalProcesses(session)
+                    }
+                    .disabled(terminalRunningCount == 0)
+
+                    Button("Refresh Health") {
+                        onRefreshTerminalProcesses()
+                    }
+
                     Button("Copy Commands") {
                         onCopyCommands(session)
                         showCopiedMessage("Copied commands")
@@ -91,7 +104,11 @@ struct SessionDetailView: View {
                     Text("\(session.urls.count) URLs")
                     Text("\(session.commands.count) commands")
                     Text("Browser: \(session.browser.rawValue)")
+                    if !session.browserProfileName.isEmpty {
+                        Text("Profile: \(session.browserProfileName)")
+                    }
                     Text("Command runner: Terminal")
+                    Text("Running: \(terminalRunningCount)")
                 }
                 .font(.caption)
                 .foregroundStyle(.secondary)
@@ -126,6 +143,11 @@ struct SessionDetailView: View {
 
                     Text(session.browser.rawValue)
                         .foregroundStyle(.secondary)
+
+                    if !session.browserProfileName.isEmpty {
+                        Text("Profile: \(session.browserProfileName)")
+                            .foregroundStyle(.secondary)
+                    }
                 }
 
                 VStack(alignment: .leading, spacing: 8) {
@@ -166,6 +188,24 @@ struct SessionDetailView: View {
                                         .foregroundStyle(.secondary)
                                 }
                             }
+                        }
+                    }
+                }
+
+                if !terminalProcessRecords.isEmpty {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Terminal Health")
+                            .font(.headline)
+
+                        ForEach(terminalProcessRecords) { record in
+                            HStack {
+                                Text(record.title)
+                                Spacer()
+                                Text(record.status.rawValue.capitalized)
+                                    .foregroundStyle(.secondary)
+                            }
+                            .font(.caption)
+                            .frame(maxWidth: 420)
                         }
                     }
                 }
@@ -216,6 +256,7 @@ struct SessionDetailView: View {
             id: UUID(),
             name: "Fantasy App",
             browser: .chrome,
+            browserProfileName: "Default",
             urls: ["https://github.com", "http://localhost:3000"],
             repositoryPath: "~/Projects/fantasy-app",
             commands: [
@@ -223,11 +264,15 @@ struct SessionDetailView: View {
                 TerminalCommand(name: "Mobile", command: "expo start")
             ]
         ),
+        terminalProcessRecords: [],
+        terminalRunningCount: 0,
         onRestore: { _ in },
         onLaunch: { _ in },
         onOpenFolder: { _ in },
         onOpenInCursor: { _ in },
         onRunCommandsInTerminal: { _ in },
+        onStopTerminalProcesses: { _ in },
+        onRefreshTerminalProcesses: {},
         onCopyCommands: { _ in },
         onCopyRepositoryPathAndCommands: { _ in },
         onCopyShellChain: { _ in },

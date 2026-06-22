@@ -10,11 +10,15 @@ import SwiftUI
 @main
 struct ProjectSessionsApp: App {
     @State private var sessionStore = SessionStore()
+    @State private var terminalProcessStore = TerminalProcessStore()
     @Environment(\.openWindow) private var openWindow
 
     var body: some Scene {
         WindowGroup(id: "main") {
-            ContentView(sessionStore: sessionStore)
+            ContentView(
+                sessionStore: sessionStore,
+                terminalProcessStore: terminalProcessStore
+            )
         }
         .defaultSize(width: 1000, height: 650)
 
@@ -25,7 +29,7 @@ struct ProjectSessionsApp: App {
                 ForEach(sessionStore.sessions) { session in
                     Menu(session.name) {
                         Button("Restore Session") {
-                            SessionLauncher.restore(session)
+                            SessionLauncher.restore(session, terminalProcessStore: terminalProcessStore)
                         }
 
                         Button("Open URLs") {
@@ -37,9 +41,24 @@ struct ProjectSessionsApp: App {
                         }
 
                         Button("Run Commands in Terminal") {
-                            SessionLauncher.runCommandsInTerminal(for: session)
+                            SessionLauncher.runCommandsInTerminal(
+                                for: session,
+                                terminalProcessStore: terminalProcessStore
+                            )
                         }
                         .disabled(session.repositoryPath.isEmpty || session.commands.isEmpty)
+
+                        Button("Stop Commands") {
+                            SessionLauncher.stopTerminalProcesses(
+                                for: session,
+                                terminalProcessStore: terminalProcessStore
+                            )
+                        }
+                        .disabled(terminalProcessStore.runningCount(for: session) == 0)
+
+                        Button("Refresh Health") {
+                            terminalProcessStore.refresh()
+                        }
 
                         Button("Copy Commands") {
                             CommandClipboard.copyCommands(for: session)

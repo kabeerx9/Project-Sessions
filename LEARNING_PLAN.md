@@ -21,6 +21,7 @@ The first version should support:
 - [x] Delete project sessions
 - [x] Store a session name
 - [x] Store browser URLs
+- [x] Store a browser profile name
 - [x] Store a repository path
 - [x] Store terminal commands
 - [x] Launch URLs in a browser
@@ -28,6 +29,8 @@ The first version should support:
 - [x] Open the repository in a terminal app
 - [x] Run saved terminal commands
 - [x] Restore browser URLs, Cursor, and terminal commands from one action
+- [x] Track launched terminal command status
+- [x] Stop launched terminal commands for a session
 - [x] Validate required form fields
 - [x] Show native failure alerts for missing folders, missing apps, and blocked automation
 - [x] Persist sessions locally
@@ -38,7 +41,6 @@ Out of scope for MVP:
 - [ ] Cloud sync
 - [ ] Team features
 - [ ] Pull request integrations
-- [ ] Terminal process management
 - [ ] Automatic service health checks
 
 ## Learning Principles
@@ -623,16 +625,17 @@ These should wait until the MVP is complete.
 
 ### Session Restore
 
-- [ ] Browser profile support
+- [x] Browser profile support for Chrome and Brave profile directory names
 - [ ] Open multiple browser tabs
 - [x] Open Cursor workspace
 - [x] Run terminal commands in Terminal.app
-- [ ] Open multiple terminal tabs or windows intentionally
-- [ ] Run long-running dev servers in separate terminal surfaces
+- [x] Open multiple terminal windows intentionally
+- [x] Run long-running dev servers in separate terminal surfaces
 - [ ] Consider iTerm2 or another terminal as an optional adapter
 
 ### Session Health
 
+- [x] Track launched terminal command process status
 - [ ] Detect running local servers
 - [ ] Show browser status
 - [ ] Show frontend status
@@ -648,7 +651,8 @@ These should wait until the MVP is complete.
 
 ### Workspace Shutdown
 
-- [ ] Stop project servers
+- [x] Stop launched terminal commands for a session
+- [ ] Stop project servers not launched by Project Sessions
 - [ ] Close project terminal windows
 - [ ] Close project browser windows
 

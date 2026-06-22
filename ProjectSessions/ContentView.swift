@@ -9,6 +9,7 @@ import SwiftUI
 
 struct ContentView: View {
     let sessionStore: SessionStore
+    let terminalProcessStore: TerminalProcessStore
     @State private var selectedSessionID: ProjectSession.ID?
     
     @State private var isShowingNewSessionForm = false
@@ -16,6 +17,7 @@ struct ContentView: View {
     
     @State private var newSessionName = ""
     @State private var newSessionBrowser = Browser.chrome
+    @State private var newSessionBrowserProfileName = ""
     @State private var newSessionRepositoryPath = ""
     @State private var newSessionURLs: [String] = []
     @State private var newSessionURLDraft = ""
@@ -28,6 +30,7 @@ struct ContentView: View {
     @State private var editingSession: ProjectSession?
     @State private var editSessionName = ""
     @State private var editSessionBrowser = Browser.chrome
+    @State private var editSessionBrowserProfileName = ""
     @State private var editSessionRepositoryPath = ""
     @State private var editSessionURLs: [String] = []
     @State private var editSessionURLDraft = ""
@@ -66,6 +69,7 @@ struct ContentView: View {
     private func resetNewSessionForm() {
         newSessionName = ""
         newSessionBrowser = .chrome
+        newSessionBrowserProfileName = ""
         newSessionRepositoryPath = ""
         newSessionURLs = []
         newSessionURLDraft = ""
@@ -79,6 +83,7 @@ struct ContentView: View {
         editingSession = session
         editSessionName = session.name
         editSessionBrowser = session.browser
+        editSessionBrowserProfileName = session.browserProfileName
         editSessionRepositoryPath = session.repositoryPath
         editSessionURLs = session.urls
         editSessionURLDraft = ""
@@ -105,6 +110,7 @@ struct ContentView: View {
             id: editingSession.id,
             name: editSessionName,
             browser: editSessionBrowser,
+            browserProfileName: editSessionBrowserProfileName,
             urls: editSessionURLs,
             repositoryPath: editSessionRepositoryPath,
             commands: editSessionCommands
@@ -124,8 +130,10 @@ struct ContentView: View {
         } detail: {
             SessionDetailView(
                 session: selectedSession,
+                terminalProcessRecords: selectedSession.map { terminalProcessStore.records(for: $0) } ?? [],
+                terminalRunningCount: selectedSession.map { terminalProcessStore.runningCount(for: $0) } ?? 0,
                 onRestore: { session in
-                    SessionLauncher.restore(session)
+                    SessionLauncher.restore(session, terminalProcessStore: terminalProcessStore)
                 },
                 onLaunch: { session in
                     SessionLauncher.launchURLs(for: session)
@@ -137,7 +145,13 @@ struct ContentView: View {
                     SessionLauncher.openRepositoryInCursor(session)
                 },
                 onRunCommandsInTerminal: { session in
-                    SessionLauncher.runCommandsInTerminal(for: session)
+                    SessionLauncher.runCommandsInTerminal(for: session, terminalProcessStore: terminalProcessStore)
+                },
+                onStopTerminalProcesses: { session in
+                    SessionLauncher.stopTerminalProcesses(for: session, terminalProcessStore: terminalProcessStore)
+                },
+                onRefreshTerminalProcesses: {
+                    terminalProcessStore.refresh()
                 },
                 onCopyCommands: { session in
                     CommandClipboard.copyCommands(for: session)
@@ -167,6 +181,7 @@ struct ContentView: View {
                 title: nil,
                 name: $newSessionName,
                 browser: $newSessionBrowser,
+                browserProfileName: $newSessionBrowserProfileName,
                 repositoryPath: $newSessionRepositoryPath,
                 urls: $newSessionURLs,
                 urlDraft: $newSessionURLDraft,
@@ -186,6 +201,7 @@ struct ContentView: View {
                         id: UUID(),
                         name: newSessionName,
                         browser: newSessionBrowser,
+                        browserProfileName: newSessionBrowserProfileName,
                         urls: newSessionURLs,
                         repositoryPath: newSessionRepositoryPath,
                         commands: newSessionCommands
@@ -203,6 +219,7 @@ struct ContentView: View {
                 title: "Edit Session",
                 name: $editSessionName,
                 browser: $editSessionBrowser,
+                browserProfileName: $editSessionBrowserProfileName,
                 repositoryPath: $editSessionRepositoryPath,
                 urls: $editSessionURLs,
                 urlDraft: $editSessionURLDraft,
@@ -260,5 +277,8 @@ struct ContentView: View {
     }
 }
 #Preview {
-    ContentView(sessionStore: SessionStore())
+    ContentView(
+        sessionStore: SessionStore(),
+        terminalProcessStore: TerminalProcessStore()
+    )
 }

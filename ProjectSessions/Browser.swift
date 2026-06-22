@@ -30,4 +30,13 @@ enum Browser: String, Codable, CaseIterable, Identifiable {
             "com.brave.Browser"
         }
     }
+
+    var supportsProfiles: Bool {
+        switch self {
+        case .chrome, .brave:
+            true
+        case .safari:
+            false
+        }
+    }
 }

@@ -2,7 +2,7 @@ import AppKit
 import Foundation
 
 enum SessionLauncher {
-    static func restore(_ session: ProjectSession) {
+    static func restore(_ session: ProjectSession, terminalProcessStore: TerminalProcessStore) {
         launchURLs(for: session)
 
         let expandedRepositoryPath = expandedPath(session.repositoryPath)
@@ -15,7 +15,7 @@ enum SessionLauncher {
         openRepositoryInCursor(session)
 
         if !session.commands.isEmpty {
-            runCommandsInTerminal(for: session)
+            runCommandsInTerminal(for: session, terminalProcessStore: terminalProcessStore)
         }
     }
 
@@ -50,12 +50,30 @@ enum SessionLauncher {
             return
         }
 
-        for (index, url) in urlsToOpen.enumerated() {
+        launchURLs(urlsToOpen, browser: session.browser, profileName: session.browserProfileName)
+    }
+
+    private static func launchURLs(_ urls: [URL], browser: Browser, profileName: String) {
+        let trimmedProfileName = profileName.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        if !trimmedProfileName.isEmpty && !browser.supportsProfiles {
+            showLaunchAlert(
+                title: "\(browser.rawValue) Profiles Are Not Supported",
+                message: "Project Sessions can use profile names with Chrome and Brave."
+            )
+        }
+
+        if !trimmedProfileName.isEmpty && browser.supportsProfiles {
+            openURLsWithBrowserProfile(urls, browser: browser, profileName: trimmedProfileName)
+            return
+        }
+
+        for (index, url) in urls.enumerated() {
             let delay = Double(index) * 1.0
 
             DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
                 print("Opening URL: \(url.absoluteString)")
-                openURLWithSystemOpenCommand(url, browser: session.browser)
+                openURLWithSystemOpenCommand(url, browser: browser)
             }
         }
     }
@@ -111,7 +129,10 @@ enum SessionLauncher {
         }
     }
 
-    static func runCommandsInTerminal(for session: ProjectSession) {
+    static func runCommandsInTerminal(
+        for session: ProjectSession,
+        terminalProcessStore: TerminalProcessStore
+    ) {
         let expandedRepositoryPath = expandedPath(session.repositoryPath)
 
         guard repositoryPathExists(expandedRepositoryPath) else {
@@ -129,15 +150,26 @@ enum SessionLauncher {
 
         for (index, plan) in plans.enumerated() {
             let delay = Double(index) * 0.5
+            let record = terminalProcessRecord(
+                for: session,
+                plan: plan,
+                workingDirectory: expandedRepositoryPath
+            )
+
+            terminalProcessStore.track(record)
 
             DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
                 launchTerminalCommand(
-                    workingDirectory: expandedRepositoryPath,
-                    plan: plan,
-                    reuseFrontWindowIfAvailable: !terminalWasRunning && index == 0
+                    record: record,
+                    reuseFrontWindowIfAvailable: !terminalWasRunning && index == 0,
+                    terminalProcessStore: terminalProcessStore
                 )
             }
         }
+    }
+
+    static func stopTerminalProcesses(for session: ProjectSession, terminalProcessStore: TerminalProcessStore) {
+        terminalProcessStore.stopProcesses(for: session)
     }
 
     private static func openURLWithSystemOpenCommand(_ url: URL, browser: Browser) {
@@ -154,6 +186,34 @@ enum SessionLauncher {
             }
         } catch {
             NSWorkspace.shared.open(url)
+        }
+    }
+
+    private static func openURLsWithBrowserProfile(_ urls: [URL], browser: Browser, profileName: String) {
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/open")
+        process.arguments = [
+            "-na",
+            browser.appName,
+            "--args",
+            "--profile-directory=\(profileName)"
+        ] + urls.map(\.absoluteString)
+
+        do {
+            try process.run()
+            process.waitUntilExit()
+
+            if process.terminationStatus != 0 {
+                showLaunchAlert(
+                    title: "Could Not Open \(browser.rawValue) Profile",
+                    message: "Check that the profile directory name is correct."
+                )
+            }
+        } catch {
+            showLaunchAlert(
+                title: "Could Not Open \(browser.rawValue) Profile",
+                message: error.localizedDescription
+            )
         }
     }
 
@@ -185,11 +245,11 @@ enum SessionLauncher {
     }
 
     private static func launchTerminalCommand(
-        workingDirectory: String,
-        plan: TerminalLaunchPlan,
-        reuseFrontWindowIfAvailable: Bool
+        record: TerminalProcessRecord,
+        reuseFrontWindowIfAvailable: Bool,
+        terminalProcessStore: TerminalProcessStore
     ) {
-        let shellCommand = "cd \(shellQuoted(workingDirectory)) && \(plan.shellCommand)"
+        let shellCommand = trackedShellCommand(for: record)
         let script: String
 
         if reuseFrontWindowIfAvailable {
@@ -216,18 +276,66 @@ enum SessionLauncher {
         var error: NSDictionary?
 
         guard let appleScript = NSAppleScript(source: script) else {
-            print("Could not create Terminal AppleScript for command: \(plan.title)")
+            print("Could not create Terminal AppleScript for command: \(record.title)")
             return
         }
 
         appleScript.executeAndReturnError(&error)
 
         if let error {
-            print("Could not run Terminal command \(plan.title): \(error)")
+            print("Could not run Terminal command \(record.title): \(error)")
             showTerminalAutomationPermissionAlertIfNeeded(error)
         } else {
-            print("Opening Terminal command: \(plan.title)")
+            print("Opening Terminal command: \(record.title)")
+
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                terminalProcessStore.refresh()
+            }
         }
+    }
+
+    private static func terminalProcessRecord(
+        for session: ProjectSession,
+        plan: TerminalLaunchPlan,
+        workingDirectory: String
+    ) -> TerminalProcessRecord {
+        let id = UUID()
+        let trackingDirectory = terminalProcessTrackingDirectory()
+        let pidFileURL = trackingDirectory.appendingPathComponent("\(id.uuidString).pid")
+        let exitFileURL = trackingDirectory.appendingPathComponent("\(id.uuidString).exit")
+
+        return TerminalProcessRecord(
+            id: id,
+            sessionID: session.id,
+            sessionName: session.name,
+            title: plan.title,
+            command: plan.shellCommand,
+            workingDirectory: workingDirectory,
+            pidFilePath: pidFileURL.path,
+            exitFilePath: exitFileURL.path,
+            pid: nil,
+            status: .launching,
+            startedAt: Date()
+        )
+    }
+
+    private static func terminalProcessTrackingDirectory() -> URL {
+        let directoryURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent("ProjectSessions", isDirectory: true)
+            .appendingPathComponent("TerminalProcesses", isDirectory: true)
+
+        try? FileManager.default.createDirectory(
+            at: directoryURL,
+            withIntermediateDirectories: true
+        )
+
+        return directoryURL
+    }
+
+    private static func trackedShellCommand(for record: TerminalProcessRecord) -> String {
+        """
+        unsetopt bgnice 2>/dev/null; cd \(shellQuoted(record.workingDirectory)) && { ( \(record.command) ) & echo $! > \(shellQuoted(record.pidFilePath)); wait $!; exitCode=$?; echo $exitCode > \(shellQuoted(record.exitFilePath)); echo; echo '[Project Sessions] command finished with exit status' $exitCode; }
+        """
     }
 
     private static func isTerminalRunning() -> Bool {

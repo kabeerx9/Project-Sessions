@@ -4,6 +4,7 @@ struct SessionFormView: View {
     let title: String?
     @Binding var name: String
     @Binding var browser: Browser
+    @Binding var browserProfileName: String
     @Binding var repositoryPath: String
     @Binding var urls: [String]
     @Binding var urlDraft: String
@@ -48,6 +49,14 @@ struct SessionFormView: View {
                 ForEach(Browser.allCases) { browser in
                     Text(browser.rawValue).tag(browser)
                 }
+            }
+
+            TextField("Browser profile", text: $browserProfileName)
+
+            if !browser.supportsProfiles && !trimmedBrowserProfileName.isEmpty {
+                Text("Profiles are only supported for Chrome and Brave.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
 
             TextField("Repository path", text: $repositoryPath)
@@ -163,6 +172,7 @@ struct SessionFormView: View {
         }
 
         name = trimmedName
+        browserProfileName = trimmedBrowserProfileName
         repositoryPath = trimmedRepositoryPath
         urls = urls
             .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
@@ -193,6 +203,10 @@ struct SessionFormView: View {
 
     private var trimmedRepositoryPath: String {
         repositoryPath.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private var trimmedBrowserProfileName: String {
+        browserProfileName.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
     private var trimmedURLDraft: String {
@@ -236,6 +250,7 @@ struct SessionFormView: View {
         title: "Edit Session",
         name: .constant("Fantasy App"),
         browser: .constant(.chrome),
+        browserProfileName: .constant("Default"),
         repositoryPath: .constant("~/Projects/fantasy-app"),
         urls: .constant(["https://github.com", "http://localhost:3000"]),
         urlDraft: .constant(""),
