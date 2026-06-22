@@ -249,7 +249,15 @@ enum SessionLauncher {
         reuseFrontWindowIfAvailable: Bool,
         terminalProcessStore: TerminalProcessStore
     ) {
-        let shellCommand = trackedShellCommand(for: record)
+        guard let scriptURL = writeTerminalCommandScript(for: record) else {
+            showLaunchAlert(
+                title: "Could Not Prepare Terminal Command",
+                message: record.title
+            )
+            return
+        }
+
+        let shellCommand = "clear; zsh \(shellQuoted(scriptURL.path))"
         let script: String
 
         if reuseFrontWindowIfAvailable {
@@ -334,8 +342,44 @@ enum SessionLauncher {
 
     private static func trackedShellCommand(for record: TerminalProcessRecord) -> String {
         """
-        unsetopt bgnice 2>/dev/null; cd \(shellQuoted(record.workingDirectory)) && { ( \(record.command) ) & echo $! > \(shellQuoted(record.pidFilePath)); wait $!; exitCode=$?; echo $exitCode > \(shellQuoted(record.exitFilePath)); echo; echo '[Project Sessions] command finished with exit status' $exitCode; }
+        unsetopt bgnice 2>/dev/null
+        cd \(shellQuoted(record.workingDirectory)) || exit 1
+
+        echo "[Project Sessions] \(record.title)"
+        echo "$ \(record.command)"
+        echo
+
+        (
+            \(record.command)
+        ) &
+
+        commandPID=$!
+        echo $commandPID > \(shellQuoted(record.pidFilePath))
+        wait $commandPID
+        exitCode=$?
+        echo $exitCode > \(shellQuoted(record.exitFilePath))
+
+        echo
+        echo "[Project Sessions] command finished with exit status $exitCode"
         """
+    }
+
+    private static func writeTerminalCommandScript(for record: TerminalProcessRecord) -> URL? {
+        let scriptURL = terminalProcessTrackingDirectory()
+            .appendingPathComponent("\(record.id.uuidString).zsh")
+
+        do {
+            try trackedShellCommand(for: record).write(
+                to: scriptURL,
+                atomically: true,
+                encoding: .utf8
+            )
+
+            return scriptURL
+        } catch {
+            print("Could not write terminal command script: \(error)")
+            return nil
+        }
     }
 
     private static func isTerminalRunning() -> Bool {
