@@ -87,8 +87,10 @@ struct SessionDetailView: View {
                         WiseActionTile(icon: "cursorarrow.and.square.on.square.dashed", title: "Open Cursor", isDisabled: session.repositoryPath.isEmpty) { onOpenInCursor(session) }
                         WiseActionTile(icon: "terminal.fill", title: "Run Commands", isDisabled: session.repositoryPath.isEmpty || session.commands.isEmpty) { onRunCommandsInTerminal(session) }
                     }
-                    HStack(spacing: WiseRadii.xl) {
-                        WiseActionTile(icon: "power", title: "Shutdown Workspace", isDisabled: !isWorkspaceActive && terminalProcessRecords.isEmpty) { onShutdownWorkspace(session) }
+                    if !isWorkspaceActive && !terminalProcessRecords.isEmpty {
+                        HStack(spacing: WiseRadii.xl) {
+                            WiseActionTile(icon: "power", title: "Shutdown Workspace", isDisabled: false) { onShutdownWorkspace(session) }
+                        }
                     }
                 }
                 .frame(maxWidth: .infinity)
@@ -153,23 +155,33 @@ struct SessionDetailView: View {
                             .foregroundStyle(WiseColors.mute)
                             .lineLimit(1)
                     }
+
+                    if isWorkspaceActive {
+                        Text(workspaceOpenSinceText)
+                            .font(.system(size: 14, weight: .bold))
+                            .foregroundStyle(WiseColors.positive)
+                    }
                 }
                 
                 Spacer(minLength: 40)
                 
                 Button {
-                    withAnimation { isRestoring = true }
-                    onRestore(session)
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
-                        withAnimation { isRestoring = false }
+                    if isWorkspaceActive {
+                        onShutdownWorkspace(session)
+                    } else {
+                        withAnimation { isRestoring = true }
+                        onRestore(session)
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.8) {
+                            withAnimation { isRestoring = false }
+                        }
                     }
                 } label: {
-                    Text("Restore Session")
+                    Text(isWorkspaceActive ? "Shutdown Workspace" : "Restore Session")
                         .font(.system(size: 20, weight: .black, design: .default))
-                        .foregroundStyle(WiseColors.onPrimary)
+                        .foregroundStyle(isWorkspaceActive ? WiseColors.canvas : WiseColors.onPrimary)
                         .padding(.horizontal, 32)
                         .padding(.vertical, 20)
-                        .background(WiseColors.primary)
+                        .background(isWorkspaceActive ? WiseColors.negative : WiseColors.primary)
                         .clipShape(Capsule())
                 }
                 .buttonStyle(.plain)
@@ -315,6 +327,14 @@ struct SessionDetailView: View {
 
             return "Stopped \(stoppedAt.formatted(date: .omitted, time: .shortened))"
         }
+    }
+
+    private var workspaceOpenSinceText: String {
+        guard let workspaceRuntime, workspaceRuntime.status == .active else {
+            return ""
+        }
+
+        return "Open since \(workspaceRuntime.startedAt.formatted(date: .omitted, time: .shortened))"
     }
 
     private func statusColor(for status: TerminalProcessStatus) -> Color {
