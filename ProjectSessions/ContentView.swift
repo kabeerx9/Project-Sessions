@@ -140,8 +140,12 @@ struct ContentView: View {
                     workspaceRuntime: selectedSession.flatMap { workspaceRuntimeStore.runtime(for: $0) },
                     experimentalCommandRunStore: experimentalCommandRunStore,
                     onRestore: { session in
+                        guard SessionLauncher.restore(session) else {
+                            return
+                        }
+
+                        experimentalCommandRunStore.startAll(for: session)
                         workspaceRuntimeStore.markStarted(session)
-                        SessionLauncher.restore(session)
                     },
                     onLaunch: { session in
                         SessionLauncher.launchURLs(for: session)
@@ -153,6 +157,7 @@ struct ContentView: View {
                         SessionLauncher.openRepositoryInCursor(session)
                     },
                     onShutdownWorkspace: { session in
+                        experimentalCommandRunStore.stopAll(for: session)
                         workspaceRuntimeStore.markStopped(session)
                     },
                     onCopyCommands: { session in

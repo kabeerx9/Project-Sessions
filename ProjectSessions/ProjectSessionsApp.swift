@@ -32,8 +32,12 @@ struct ProjectSessionsApp: App {
                     Menu(session.name) {
                         Button("Start Session") {
                             SessionStartOverlay.show(sessionName: session.name)
+                            guard SessionLauncher.restore(session) else {
+                                return
+                            }
+
+                            experimentalCommandRunStore.startAll(for: session)
                             workspaceRuntimeStore.markStarted(session)
-                            SessionLauncher.restore(session)
                         }
 
                         Button("Open URLs") {
@@ -45,6 +49,7 @@ struct ProjectSessionsApp: App {
                         }
 
                         Button("Shutdown Workspace") {
+                            experimentalCommandRunStore.stopAll(for: session)
                             workspaceRuntimeStore.markStopped(session)
                         }
                         .disabled(!workspaceRuntimeStore.isActive(session))

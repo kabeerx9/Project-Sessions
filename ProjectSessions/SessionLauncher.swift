@@ -2,17 +2,18 @@ import AppKit
 import Foundation
 
 enum SessionLauncher {
-    static func restore(_ session: ProjectSession) {
+    static func restore(_ session: ProjectSession) -> Bool {
         launchURLs(for: session)
 
         let expandedRepositoryPath = expandedPath(session.repositoryPath)
 
         guard repositoryPathExists(expandedRepositoryPath) else {
             showRepositoryPathAlert(expandedRepositoryPath)
-            return
+            return false
         }
 
         openRepositoryInCursor(session)
+        return true
     }
 
     static func launchURLs(for session: ProjectSession) {

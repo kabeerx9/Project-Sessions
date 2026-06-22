@@ -170,7 +170,7 @@ struct SessionDetailView: View {
         return Panel {
             VStack(alignment: .leading, spacing: 14) {
                 HStack {
-                    SectionHeader("Native Runner Lab", systemImage: "terminal")
+                    SectionHeader("Command Console", systemImage: "terminal")
 
                     Spacer()
 
