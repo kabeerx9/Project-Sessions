@@ -33,7 +33,7 @@ class SessionStore {
         )
     ]
 
-    private let sessionsKey = "projectSessions"
+    private let sessionsKey = "projectSessions.v2"
 
     init() {
         loadSessions()
