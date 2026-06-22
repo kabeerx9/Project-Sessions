@@ -22,8 +22,18 @@ struct ProjectSessionsApp: App {
                 Text("No sessions")
             } else {
                 ForEach(sessionStore.sessions) { session in
-                    Button(session.name) {
-                        SessionLauncher.restore(session)
+                    Menu(session.name) {
+                        Button("Restore Session") {
+                            SessionLauncher.restore(session)
+                        }
+
+                        Button("Open URLs") {
+                            SessionLauncher.launchURLs(for: session)
+                        }
+
+                        Button("Open in Cursor") {
+                            SessionLauncher.openRepositoryInCursor(session)
+                        }
                     }
                 }
             }
