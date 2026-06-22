@@ -63,6 +63,14 @@ struct ContentView: View {
         newSessionURLs.append(newSessionURLDraft)
         newSessionURLDraft = ""
     }
+
+    private func chooseRepositoryPathForNewSession() {
+        guard let path = chooseRepositoryPath() else {
+            return
+        }
+
+        newSessionRepositoryPath = path
+    }
     
     private var selectedSession: ProjectSession? {
         sessions.first { $0.id == selectedSessionID }
@@ -192,6 +200,14 @@ struct ContentView: View {
         editSessionURLDraft = ""
     }
 
+    private func chooseRepositoryPathForEditSession() {
+        guard let path = chooseRepositoryPath() else {
+            return
+        }
+
+        editSessionRepositoryPath = path
+    }
+
     private func saveEditedSession() {
         guard let editingSession else {
             return
@@ -227,6 +243,24 @@ struct ContentView: View {
 
         return "\(homeDirectory)/\(trimmedPath)"
     }
+
+    private func chooseRepositoryPath() -> String? {
+        let panel = NSOpenPanel()
+        panel.canChooseFiles = false
+        panel.canChooseDirectories = true
+        panel.allowsMultipleSelection = false
+        panel.canCreateDirectories = false
+        panel.title = "Choose Repository Folder"
+        panel.prompt = "Choose"
+
+        let response = panel.runModal()
+
+        guard response == .OK, let url = panel.url else {
+            return nil
+        }
+
+        return url.path
+    }
     
     private func openRepositoryInFinder(_ session: ProjectSession) {
         let expandedRepositoryPath = expandedPath(session.repositoryPath)
@@ -244,6 +278,30 @@ struct ContentView: View {
         if !didOpen {
             print("Could not open repository folder: \(expandedRepositoryPath)")
         }
+    }
+    
+    private func openRepositoryInCursor(_ session: ProjectSession) {
+        let expandedRepositoryPath = expandedPath(session.repositoryPath)
+
+        guard FileManager.default.fileExists(atPath: expandedRepositoryPath) else {
+            print("Repository path does not exist: \(expandedRepositoryPath)")
+            return
+        }
+
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/open")
+        process.arguments = ["-a", "Cursor", expandedRepositoryPath]
+
+        do {
+            try process.run()
+        } catch {
+            print("Could not open repository in Cursor: \(error)")
+        }
+    }
+
+    private func restoreSession(_ session: ProjectSession) {
+        launchSession(session)
+        openRepositoryInCursor(session)
     }
     
     var body: some View {
@@ -310,6 +368,10 @@ struct ContentView: View {
                         
                         Spacer()
                         
+                        Button("Restore Session") {
+                            restoreSession(selectedSession)
+                        }
+                        
                         Button("Launch Session") {
                             launchSession(selectedSession)
                         }
@@ -317,6 +379,11 @@ struct ContentView: View {
                         
                         Button("Open Folder") {
                             openRepositoryInFinder(selectedSession)
+                        }
+                        .disabled(selectedSession.repositoryPath.isEmpty)
+                        
+                        Button("Open in Cursor") {
+                            openRepositoryInCursor(selectedSession)
                         }
                         .disabled(selectedSession.repositoryPath.isEmpty)
                         
@@ -381,6 +448,11 @@ struct ContentView: View {
                 TextField("Session name", text: $newSessionName)
                 TextField("Browser", text: $newSessionBrowser)
                 TextField("Repository path", text: $newSessionRepositoryPath)
+
+                Button("Choose Folder") {
+                    chooseRepositoryPathForNewSession()
+                }
+
                 TextField("URL", text: $newSessionURLDraft)
 
                 Button("Add URL") {
@@ -438,6 +510,11 @@ struct ContentView: View {
                 TextField("Session name", text: $editSessionName)
                 TextField("Browser", text: $editSessionBrowser)
                 TextField("Repository path", text: $editSessionRepositoryPath)
+
+                Button("Choose Folder") {
+                    chooseRepositoryPathForEditSession()
+                }
+
                 TextField("URL", text: $editSessionURLDraft)
 
                 Button("Add URL") {

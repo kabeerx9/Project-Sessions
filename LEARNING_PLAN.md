@@ -412,8 +412,8 @@ macOS apps can open URLs, files, folders, and other apps. This is where Project 
 
 - [x] `NSWorkspace`
 - [x] Opening URLs
-- [ ] Opening local folders
-- [ ] Launching apps
+- [x] Opening local folders
+- [x] Launching apps
 - [x] Basic error handling
 - [ ] App bundle identifiers
 - [ ] File paths and `URL(fileURLWithPath:)`
@@ -421,8 +421,8 @@ macOS apps can open URLs, files, folders, and other apps. This is where Project 
 ### Project Implementation
 
 - [x] Launch all URLs for a session
-- [ ] Open a repository path in Finder
-- [ ] Open a repository path in Cursor
+- [x] Open a repository path in Finder
+- [x] Open a repository path in Cursor
 - [x] Add a "Launch Session" button
 - [x] Show a simple failure message if something cannot be opened
 
@@ -530,16 +530,16 @@ SwiftUI should be the default. AppKit should be introduced only when SwiftUI can
 
 ### Concepts To Learn Later
 
-- [ ] What AppKit is
-- [ ] When SwiftUI wraps AppKit
-- [ ] `NSOpenPanel`
-- [ ] Choosing folders
+- [x] What AppKit is
+- [x] When SwiftUI wraps AppKit
+- [x] `NSOpenPanel`
+- [x] Choosing folders
 - [ ] Advanced window behavior
 
 ### Project Implementation
 
-- [ ] Use `NSOpenPanel` to select a repository folder
-- [ ] Store the selected path in a session
+- [x] Use `NSOpenPanel` to select a repository folder
+- [x] Store the selected path in a session
 - [ ] Avoid AppKit for normal layout and forms
 
 ## Future Features
@@ -596,6 +596,6 @@ Follow this order unless there is a specific reason to jump ahead:
 
 ## Current Next Step
 
-- [ ] Open a repository path in Finder
-- [ ] Open a repository path in Cursor
+- [x] Open a repository path in Finder
+- [x] Open a repository path in Cursor
 - [ ] Add browser-specific launch behavior
