@@ -22,10 +22,9 @@ struct ContentView: View {
     @State private var newSessionRepositoryPath = ""
     @State private var newSessionURLs: [String] = []
     @State private var newSessionURLDraft = ""
-    @State private var newSessionCommands: [TerminalCommand] = []
+    @State private var newSessionCommands: [WorkspaceCommand] = []
     @State private var newSessionCommandNameDraft = ""
     @State private var newSessionCommandDraft = ""
-    @State private var newSessionCommandRunsInSeparateTerminal = true
     
     
     @State private var editingSession: ProjectSession?
@@ -35,10 +34,9 @@ struct ContentView: View {
     @State private var editSessionRepositoryPath = ""
     @State private var editSessionURLs: [String] = []
     @State private var editSessionURLDraft = ""
-    @State private var editSessionCommands: [TerminalCommand] = []
+    @State private var editSessionCommands: [WorkspaceCommand] = []
     @State private var editSessionCommandNameDraft = ""
     @State private var editSessionCommandDraft = ""
-    @State private var editSessionCommandRunsInSeparateTerminal = true
     
     @State private var sessionsToDelete: [ProjectSession] = []
 
@@ -78,7 +76,6 @@ struct ContentView: View {
         newSessionCommands = []
         newSessionCommandNameDraft = ""
         newSessionCommandDraft = ""
-        newSessionCommandRunsInSeparateTerminal = true
     }
 
     private func startEditing(_ session: ProjectSession) {
@@ -92,7 +89,6 @@ struct ContentView: View {
         editSessionCommands = session.commands
         editSessionCommandNameDraft = ""
         editSessionCommandDraft = ""
-        editSessionCommandRunsInSeparateTerminal = true
     }
 
     private func chooseRepositoryPathForEditSession() {
@@ -195,7 +191,6 @@ struct ContentView: View {
                     commands: $newSessionCommands,
                     commandNameDraft: $newSessionCommandNameDraft,
                     commandDraft: $newSessionCommandDraft,
-                    commandRunsInSeparateTerminal: $newSessionCommandRunsInSeparateTerminal,
                     onChooseFolder: {
                         chooseRepositoryPathForNewSession()
                     },
@@ -233,7 +228,6 @@ struct ContentView: View {
                     commands: $editSessionCommands,
                     commandNameDraft: $editSessionCommandNameDraft,
                     commandDraft: $editSessionCommandDraft,
-                    commandRunsInSeparateTerminal: $editSessionCommandRunsInSeparateTerminal,
                     onChooseFolder: {
                         chooseRepositoryPathForEditSession()
                     },

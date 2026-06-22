@@ -8,10 +8,9 @@ struct SessionFormView: View {
     @Binding var repositoryPath: String
     @Binding var urls: [String]
     @Binding var urlDraft: String
-    @Binding var commands: [TerminalCommand]
+    @Binding var commands: [WorkspaceCommand]
     @Binding var commandNameDraft: String
     @Binding var commandDraft: String
-    @Binding var commandRunsInSeparateTerminal: Bool
     let onChooseFolder: () -> Void
     let onCancel: () -> Void
     let onSave: () -> Void
@@ -202,13 +201,11 @@ struct SessionFormView: View {
     }
 
     private var commandsSection: some View {
-        FormPanel(title: "Terminal Commands", systemImage: "terminal") {
+        FormPanel(title: "Commands", systemImage: "terminal") {
             VStack(alignment: .leading, spacing: 12) {
                 TextField("Name, optional", text: $commandNameDraft)
                 TextField("Command, for example pnpm dev", text: $commandDraft)
                     .font(.system(.body, design: .monospaced))
-
-                Toggle("Run in separate Terminal window", isOn: $commandRunsInSeparateTerminal)
 
                 HStack {
                     Spacer()
@@ -229,7 +226,7 @@ struct SessionFormView: View {
                             RemovableRow(
                                 title: command.name.isEmpty ? command.command : command.name,
                                 subtitle: command.name.isEmpty ? nil : command.command,
-                                systemImage: command.runsInSeparateTerminal ? "window" : "terminal"
+                                systemImage: "terminal"
                             ) {
                                 commands.removeAll { $0.id == command.id }
                             }
@@ -284,15 +281,13 @@ struct SessionFormView: View {
         }
 
         commands.append(
-            TerminalCommand(
+            WorkspaceCommand(
                 name: trimmedCommandNameDraft,
-                command: trimmedCommandDraft,
-                runsInSeparateTerminal: commandRunsInSeparateTerminal
+                command: trimmedCommandDraft
             )
         )
         commandNameDraft = ""
         commandDraft = ""
-        commandRunsInSeparateTerminal = true
     }
 
     private func saveForm() {
@@ -315,11 +310,10 @@ struct SessionFormView: View {
                 return nil
             }
 
-            return TerminalCommand(
+            return WorkspaceCommand(
                 id: command.id,
                 name: trimmedName,
-                command: trimmedCommand,
-                runsInSeparateTerminal: command.runsInSeparateTerminal
+                command: trimmedCommand
             )
         }
 
@@ -509,12 +503,11 @@ private struct RemovableRow: View {
         urls: .constant(["https://github.com", "http://localhost:3000"]),
         urlDraft: .constant(""),
         commands: .constant([
-            TerminalCommand(name: "Web", command: "pnpm dev"),
-            TerminalCommand(name: "Mobile", command: "expo start")
+            WorkspaceCommand(name: "Web", command: "pnpm dev"),
+            WorkspaceCommand(name: "Mobile", command: "expo start")
         ]),
         commandNameDraft: .constant(""),
         commandDraft: .constant(""),
-        commandRunsInSeparateTerminal: .constant(true),
         onChooseFolder: {},
         onCancel: {},
         onSave: {}

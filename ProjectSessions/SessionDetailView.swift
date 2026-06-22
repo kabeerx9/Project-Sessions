@@ -344,15 +344,6 @@ struct SessionDetailView: View {
 
                                     Spacer()
 
-                                    if command.runsInSeparateTerminal {
-                                        Text("Separate")
-                                            .font(.caption2)
-                                            .foregroundStyle(.secondary)
-                                            .padding(.horizontal, 6)
-                                            .padding(.vertical, 2)
-                                            .background(WiseColors.border)
-                                            .clipShape(Capsule())
-                                    }
                                 }
 
                                 if !command.name.isEmpty {
@@ -435,9 +426,6 @@ struct SessionDetailView: View {
         }
     }
 
-    private func displayName(for command: TerminalCommand) -> String {
-        command.name.isEmpty ? command.command : command.name
-    }
 }
 
 private struct Panel<Content: View>: View {

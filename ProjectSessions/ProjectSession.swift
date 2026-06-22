@@ -7,7 +7,7 @@ struct ProjectSession: Identifiable, Codable {
     var browserProfileName: String
     var urls: [String]
     var repositoryPath: String
-    var commands: [TerminalCommand]
+    var commands: [WorkspaceCommand]
 
     init(
         id: UUID,
@@ -16,7 +16,7 @@ struct ProjectSession: Identifiable, Codable {
         browserProfileName: String = "",
         urls: [String],
         repositoryPath: String,
-        commands: [TerminalCommand] = []
+        commands: [WorkspaceCommand] = []
     ) {
         self.id = id
         self.name = name

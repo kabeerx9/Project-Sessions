@@ -46,7 +46,7 @@ final class CommandRunStore {
         }
     }
 
-    func start(_ command: TerminalCommand, for session: ProjectSession) {
+    func start(_ command: WorkspaceCommand, for session: ProjectSession) {
         guard !session.repositoryPath.isEmpty else {
             return
         }
@@ -110,7 +110,7 @@ final class CommandRunStore {
         return environment
     }
 
-    private func displayName(for command: TerminalCommand) -> String {
+    private func displayName(for command: WorkspaceCommand) -> String {
         command.name.isEmpty ? command.command : command.name
     }
 }
@@ -120,7 +120,7 @@ final class CommandRunStore {
 final class CommandRun: Identifiable {
     let id = UUID()
     let sessionID: ProjectSession.ID
-    let commandID: TerminalCommand.ID
+    let commandID: WorkspaceCommand.ID
     let title: String
     let command: String
     let workingDirectory: String
@@ -140,7 +140,7 @@ final class CommandRun: Identifiable {
 
     init(
         sessionID: ProjectSession.ID,
-        commandID: TerminalCommand.ID,
+        commandID: WorkspaceCommand.ID,
         title: String,
         command: String,
         workingDirectory: String
