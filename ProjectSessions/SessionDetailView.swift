@@ -119,8 +119,20 @@ struct SessionDetailView: View {
                             .foregroundStyle(.secondary)
                     } else {
                         ForEach(session.commands) { command in
-                            Text(command.command)
-                                .foregroundStyle(.secondary)
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(command.name.isEmpty ? command.command : command.name)
+                                    .foregroundStyle(.secondary)
+
+                                Text(command.command)
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+
+                                if command.runsInSeparateTab {
+                                    Text("Separate terminal tab later")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+                            }
                         }
                     }
                 }
@@ -164,7 +176,10 @@ struct SessionDetailView: View {
             browser: .chrome,
             urls: ["https://github.com", "http://localhost:3000"],
             repositoryPath: "~/Projects/fantasy-app",
-            commands: [TerminalCommand(command: "pnpm dev"), TerminalCommand(command: "expo start")]
+            commands: [
+                TerminalCommand(name: "Web", command: "pnpm dev"),
+                TerminalCommand(name: "Mobile", command: "expo start")
+            ]
         ),
         onRestore: { _ in },
         onLaunch: { _ in },

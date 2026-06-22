@@ -58,7 +58,10 @@ struct SessionSidebarView: View {
                 browser: .chrome,
                 urls: ["https://github.com", "http://localhost:3000"],
                 repositoryPath: "~/Projects/fantasy-app",
-                commands: [TerminalCommand(command: "pnpm dev"), TerminalCommand(command: "expo start")]
+                commands: [
+                    TerminalCommand(name: "Web", command: "pnpm dev"),
+                    TerminalCommand(name: "Mobile", command: "expo start")
+                ]
             )
         ],
         selectedSessionID: .constant(nil),

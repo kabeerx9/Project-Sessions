@@ -8,7 +8,9 @@ struct SessionFormView: View {
     @Binding var urls: [String]
     @Binding var urlDraft: String
     @Binding var commands: [TerminalCommand]
+    @Binding var commandNameDraft: String
     @Binding var commandDraft: String
+    @Binding var commandRunsInSeparateTab: Bool
     let onChooseFolder: () -> Void
     let onCancel: () -> Void
     let onSave: () -> Void
@@ -55,7 +57,9 @@ struct SessionFormView: View {
                 }
             }
 
+            TextField("Command name", text: $commandNameDraft)
             TextField("Command", text: $commandDraft)
+            Toggle("Run in separate tab later", isOn: $commandRunsInSeparateTab)
 
             Button("Add Command") {
                 addCommand()
@@ -64,8 +68,21 @@ struct SessionFormView: View {
 
             ForEach(commands) { command in
                 HStack {
-                    Text(command.command)
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(command.name.isEmpty ? command.command : command.name)
+                        Text(command.command)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+
                     Spacer()
+
+                    if command.runsInSeparateTab {
+                        Text("Separate tab")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+
                     Button("Remove") {
                         commands.removeAll { $0.id == command.id }
                     }
@@ -103,8 +120,16 @@ struct SessionFormView: View {
             return
         }
 
-        commands.append(TerminalCommand(command: commandDraft))
+        commands.append(
+            TerminalCommand(
+                name: commandNameDraft,
+                command: commandDraft,
+                runsInSeparateTab: commandRunsInSeparateTab
+            )
+        )
+        commandNameDraft = ""
         commandDraft = ""
+        commandRunsInSeparateTab = true
     }
 }
 
@@ -116,8 +141,13 @@ struct SessionFormView: View {
         repositoryPath: .constant("~/Projects/fantasy-app"),
         urls: .constant(["https://github.com", "http://localhost:3000"]),
         urlDraft: .constant(""),
-        commands: .constant([TerminalCommand(command: "pnpm dev"), TerminalCommand(command: "expo start")]),
+        commands: .constant([
+            TerminalCommand(name: "Web", command: "pnpm dev"),
+            TerminalCommand(name: "Mobile", command: "expo start")
+        ]),
+        commandNameDraft: .constant(""),
         commandDraft: .constant(""),
+        commandRunsInSeparateTab: .constant(true),
         onChooseFolder: {},
         onCancel: {},
         onSave: {}

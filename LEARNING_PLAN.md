@@ -468,12 +468,15 @@ The Process API is for starting and controlling command-line programs. It should
 - [ ] Reading output later
 - [x] Knowing when not to run shell commands from the app
 - [x] Modeling terminal commands as structs
+- [x] Add command display names
+- [x] Add separate-tab intent for future terminal restore
 
 ### Project Implementation
 
 - [ ] Explore how a command could be launched
 - [x] Store terminal commands without running them
 - [x] Replace raw command strings with `TerminalCommand`
+- [x] Store command metadata for future terminal tabs
 - [x] Copy saved commands to the clipboard
 - [x] Copy commands as a single shell chain with `&&`
 - [x] Defer automatic terminal command execution until after the MVP

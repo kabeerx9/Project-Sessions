@@ -10,7 +10,10 @@ class SessionStore {
             browser: .chrome,
             urls: ["https://github.com", "http://localhost:3000"],
             repositoryPath: "~/Projects/fantasy-app",
-            commands: [TerminalCommand(command: "pnpm dev"), TerminalCommand(command: "expo start")]
+            commands: [
+                TerminalCommand(name: "Web", command: "pnpm dev"),
+                TerminalCommand(name: "Mobile", command: "expo start")
+            ]
         ),
         ProjectSession(
             id: UUID(),
@@ -18,7 +21,7 @@ class SessionStore {
             browser: .chrome,
             urls: ["https://figma.com"],
             repositoryPath: "~/Projects/dashboard",
-            commands: [TerminalCommand(command: "npm run dev")]
+            commands: [TerminalCommand(name: "Web", command: "npm run dev")]
         ),
         ProjectSession(
             id: UUID(),
