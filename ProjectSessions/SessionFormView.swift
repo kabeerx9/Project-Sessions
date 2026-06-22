@@ -7,7 +7,7 @@ struct SessionFormView: View {
     @Binding var repositoryPath: String
     @Binding var urls: [String]
     @Binding var urlDraft: String
-    @Binding var commands: [String]
+    @Binding var commands: [TerminalCommand]
     @Binding var commandDraft: String
     let onChooseFolder: () -> Void
     let onCancel: () -> Void
@@ -62,12 +62,12 @@ struct SessionFormView: View {
             }
             .disabled(commandDraft.isEmpty)
 
-            ForEach(commands, id: \.self) { command in
+            ForEach(commands) { command in
                 HStack {
-                    Text(command)
+                    Text(command.command)
                     Spacer()
                     Button("Remove") {
-                        commands.removeAll { $0 == command }
+                        commands.removeAll { $0.id == command.id }
                     }
                 }
             }
@@ -103,7 +103,7 @@ struct SessionFormView: View {
             return
         }
 
-        commands.append(commandDraft)
+        commands.append(TerminalCommand(command: commandDraft))
         commandDraft = ""
     }
 }
@@ -116,7 +116,7 @@ struct SessionFormView: View {
         repositoryPath: .constant("~/Projects/fantasy-app"),
         urls: .constant(["https://github.com", "http://localhost:3000"]),
         urlDraft: .constant(""),
-        commands: .constant(["pnpm dev", "expo start"]),
+        commands: .constant([TerminalCommand(command: "pnpm dev"), TerminalCommand(command: "expo start")]),
         commandDraft: .constant(""),
         onChooseFolder: {},
         onCancel: {},

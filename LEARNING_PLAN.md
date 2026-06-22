@@ -182,6 +182,7 @@ let sessions = [
 - [x] Mutating arrays
 - [x] Local UI state
 - [x] Simple form state
+- [x] Transient UI feedback state
 
 ### Project Implementation
 
@@ -466,11 +467,13 @@ The Process API is for starting and controlling command-line programs. It should
 - [ ] Environment variables
 - [ ] Reading output later
 - [x] Knowing when not to run shell commands from the app
+- [x] Modeling terminal commands as structs
 
 ### Project Implementation
 
 - [ ] Explore how a command could be launched
 - [x] Store terminal commands without running them
+- [x] Replace raw command strings with `TerminalCommand`
 - [x] Copy saved commands to the clipboard
 - [x] Copy commands as a single shell chain with `&&`
 - [x] Defer automatic terminal command execution until after the MVP

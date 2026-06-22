@@ -19,7 +19,7 @@ struct ContentView: View {
     @State private var newSessionRepositoryPath = ""
     @State private var newSessionURLs: [String] = []
     @State private var newSessionURLDraft = ""
-    @State private var newSessionCommands: [String] = []
+    @State private var newSessionCommands: [TerminalCommand] = []
     @State private var newSessionCommandDraft = ""
     
     
@@ -29,7 +29,7 @@ struct ContentView: View {
     @State private var editSessionRepositoryPath = ""
     @State private var editSessionURLs: [String] = []
     @State private var editSessionURLDraft = ""
-    @State private var editSessionCommands: [String] = []
+    @State private var editSessionCommands: [TerminalCommand] = []
     @State private var editSessionCommandDraft = ""
     
     @State private var sessionsToDelete: [ProjectSession] = []

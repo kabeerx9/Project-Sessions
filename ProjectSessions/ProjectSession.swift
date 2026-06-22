@@ -6,7 +6,7 @@ struct ProjectSession: Identifiable, Codable {
     var browser: Browser
     var urls: [String]
     var repositoryPath: String
-    var commands: [String]
+    var commands: [TerminalCommand]
 
     init(
         id: UUID,
@@ -14,7 +14,7 @@ struct ProjectSession: Identifiable, Codable {
         browser: Browser,
         urls: [String],
         repositoryPath: String,
-        commands: [String] = []
+        commands: [TerminalCommand] = []
     ) {
         self.id = id
         self.name = name
@@ -42,6 +42,12 @@ struct ProjectSession: Identifiable, Codable {
         browser = Browser(rawValue: savedBrowser) ?? .chrome
         urls = try container.decode([String].self, forKey: .urls)
         repositoryPath = try container.decode(String.self, forKey: .repositoryPath)
-        commands = try container.decodeIfPresent([String].self, forKey: .commands) ?? []
+        
+        if let savedCommands = try? container.decodeIfPresent([TerminalCommand].self, forKey: .commands) {
+            commands = savedCommands ?? []
+        } else {
+            let oldCommandStrings = try container.decodeIfPresent([String].self, forKey: .commands) ?? []
+            commands = oldCommandStrings.map { TerminalCommand(command: $0) }
+        }
     }
 }

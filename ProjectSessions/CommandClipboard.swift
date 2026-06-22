@@ -2,7 +2,7 @@ import AppKit
 
 enum CommandClipboard {
     static func copyCommands(for session: ProjectSession) {
-        let commandsText = session.commands.joined(separator: "\n")
+        let commandsText = session.commands.map(\.command).joined(separator: "\n")
 
         guard !commandsText.isEmpty else {
             return
@@ -18,7 +18,7 @@ enum CommandClipboard {
 
         let expandedRepositoryPath = expandedPath(session.repositoryPath)
         let cdCommand = "cd \(shellQuoted(expandedRepositoryPath))"
-        let commandsText = ([cdCommand] + session.commands).joined(separator: "\n")
+        let commandsText = ([cdCommand] + session.commands.map(\.command)).joined(separator: "\n")
 
         copy(commandsText)
     }
@@ -30,7 +30,7 @@ enum CommandClipboard {
 
         let expandedRepositoryPath = expandedPath(session.repositoryPath)
         let cdCommand = "cd \(shellQuoted(expandedRepositoryPath))"
-        let commandsText = ([cdCommand] + session.commands).joined(separator: " && ")
+        let commandsText = ([cdCommand] + session.commands.map(\.command)).joined(separator: " && ")
 
         copy(commandsText)
     }

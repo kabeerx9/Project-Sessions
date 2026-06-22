@@ -5,6 +5,7 @@ enum SessionLauncher {
     static func restore(_ session: ProjectSession) {
         launchURLs(for: session)
         openRepositoryInCursor(session)
+        openRepositoryInGhostty(session)
     }
 
     static func launchURLs(for session: ProjectSession) {

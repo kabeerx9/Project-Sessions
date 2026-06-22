@@ -12,6 +12,7 @@ struct SessionDetailView: View {
     let onCopyShellChain: (ProjectSession) -> Void
     let onEdit: (ProjectSession) -> Void
     let onDelete: (ProjectSession) -> Void
+    @State private var copiedMessage: String?
 
     var body: some View {
         if let session {
@@ -53,16 +54,19 @@ struct SessionDetailView: View {
 
                     Button("Copy Commands") {
                         onCopyCommands(session)
+                        showCopiedMessage("Copied commands")
                     }
                     .disabled(session.commands.isEmpty)
 
                     Button("Copy cd + Commands") {
                         onCopyRepositoryPathAndCommands(session)
+                        showCopiedMessage("Copied cd + commands")
                     }
                     .disabled(session.commands.isEmpty || session.repositoryPath.isEmpty)
 
                     Button("Copy Shell Chain") {
                         onCopyShellChain(session)
+                        showCopiedMessage("Copied shell chain")
                     }
                     .disabled(session.commands.isEmpty || session.repositoryPath.isEmpty)
 
@@ -76,6 +80,12 @@ struct SessionDetailView: View {
                 }
 
                 Divider()
+
+                if let copiedMessage {
+                    Text(copiedMessage)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
 
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Browser")
@@ -108,8 +118,8 @@ struct SessionDetailView: View {
                         Text("No commands saved.")
                             .foregroundStyle(.secondary)
                     } else {
-                        ForEach(session.commands, id: \.self) { command in
-                            Text(command)
+                        ForEach(session.commands) { command in
+                            Text(command.command)
                                 .foregroundStyle(.secondary)
                         }
                     }
@@ -134,6 +144,16 @@ struct SessionDetailView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
     }
+
+    private func showCopiedMessage(_ message: String) {
+        copiedMessage = message
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+            if copiedMessage == message {
+                copiedMessage = nil
+            }
+        }
+    }
 }
 
 #Preview {
@@ -144,7 +164,7 @@ struct SessionDetailView: View {
             browser: .chrome,
             urls: ["https://github.com", "http://localhost:3000"],
             repositoryPath: "~/Projects/fantasy-app",
-            commands: ["pnpm dev", "expo start"]
+            commands: [TerminalCommand(command: "pnpm dev"), TerminalCommand(command: "expo start")]
         ),
         onRestore: { _ in },
         onLaunch: { _ in },
