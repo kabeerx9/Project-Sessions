@@ -31,6 +31,7 @@ The first version should support:
 - [x] Restore browser URLs, Cursor, and terminal commands from one action
 - [x] Track launched terminal command status
 - [x] Stop launched terminal commands for a session
+- [x] Close Terminal tabs/windows created by Project Sessions during workspace shutdown
 - [x] Validate required form fields
 - [x] Show native failure alerts for missing folders, missing apps, and blocked automation
 - [x] Persist sessions locally
@@ -653,7 +654,7 @@ These should wait until the MVP is complete.
 
 - [x] Stop launched terminal commands for a session
 - [ ] Stop project servers not launched by Project Sessions
-- [ ] Close project terminal windows
+- [x] Close Project Sessions-created Terminal tabs/windows
 - [ ] Close project browser windows
 
 ## Suggested Implementation Order

@@ -172,6 +172,15 @@ enum SessionLauncher {
         terminalProcessStore.stopProcesses(for: session)
     }
 
+    static func shutdownWorkspace(for session: ProjectSession, terminalProcessStore: TerminalProcessStore) {
+        terminalProcessStore.stopProcesses(for: session)
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.2) {
+            closeTerminalWindows(for: session, terminalProcessStore: terminalProcessStore)
+            terminalProcessStore.refresh()
+        }
+    }
+
     private static func openURLWithSystemOpenCommand(_ url: URL, browser: Browser) {
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/usr/bin/open")
@@ -266,16 +275,19 @@ enum SessionLauncher {
                 activate
                 delay 0.4
                 if (count of windows) is 0 then
-                    do script "\(appleScriptEscaped(shellCommand))"
+                    set projectSessionsTab to do script "\(appleScriptEscaped(shellCommand))"
                 else
                     do script "\(appleScriptEscaped(shellCommand))" in selected tab of front window
+                    set projectSessionsTab to selected tab of front window
                 end if
+                set custom title of projectSessionsTab to "\(appleScriptEscaped(record.terminalTabTitle))"
             end tell
             """
         } else {
             script = """
             tell application "Terminal"
-                do script "\(appleScriptEscaped(shellCommand))"
+                set projectSessionsTab to do script "\(appleScriptEscaped(shellCommand))"
+                set custom title of projectSessionsTab to "\(appleScriptEscaped(record.terminalTabTitle))"
                 activate
             end tell
             """
@@ -319,6 +331,7 @@ enum SessionLauncher {
             title: plan.title,
             command: plan.shellCommand,
             workingDirectory: workingDirectory,
+            terminalTabTitle: terminalTabTitle(sessionName: session.name, commandTitle: plan.title, id: id),
             pidFilePath: pidFileURL.path,
             exitFilePath: exitFileURL.path,
             pid: nil,
@@ -362,6 +375,61 @@ enum SessionLauncher {
         echo
         echo "[Project Sessions] command finished with exit status $exitCode"
         """
+    }
+
+    private static func closeTerminalWindows(
+        for session: ProjectSession,
+        terminalProcessStore: TerminalProcessStore
+    ) {
+        let tabTitles = terminalProcessStore
+            .records(for: session)
+            .map(\.terminalTabTitle)
+
+        guard !tabTitles.isEmpty else {
+            return
+        }
+
+        let titleChecks = tabTitles
+            .map { "tabTitle is \"\(appleScriptEscaped($0))\"" }
+            .joined(separator: " or ")
+
+        let script = """
+        tell application "Terminal"
+            repeat with terminalWindow in windows
+                set matchingTabs to {}
+
+                repeat with terminalTab in tabs of terminalWindow
+                    set tabTitle to custom title of terminalTab
+
+                    if \(titleChecks) then
+                        set end of matchingTabs to terminalTab
+                    end if
+                end repeat
+
+                repeat with terminalTab in matchingTabs
+                    close terminalTab
+                end repeat
+            end repeat
+        end tell
+        """
+
+        var error: NSDictionary?
+
+        guard let appleScript = NSAppleScript(source: script) else {
+            print("Could not create Terminal close AppleScript for session: \(session.name)")
+            return
+        }
+
+        appleScript.executeAndReturnError(&error)
+
+        if let error {
+            print("Could not close Terminal windows for \(session.name): \(error)")
+            showTerminalAutomationPermissionAlertIfNeeded(error)
+        }
+    }
+
+    private static func terminalTabTitle(sessionName: String, commandTitle: String, id: UUID) -> String {
+        "Project Sessions - \(sessionName) - \(commandTitle) - \(id.uuidString)"
     }
 
     private static func writeTerminalCommandScript(for record: TerminalProcessRecord) -> URL? {

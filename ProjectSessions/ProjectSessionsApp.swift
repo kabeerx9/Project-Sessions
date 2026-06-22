@@ -56,6 +56,14 @@ struct ProjectSessionsApp: App {
                         }
                         .disabled(terminalProcessStore.runningCount(for: session) == 0)
 
+                        Button("Shutdown Workspace") {
+                            SessionLauncher.shutdownWorkspace(
+                                for: session,
+                                terminalProcessStore: terminalProcessStore
+                            )
+                        }
+                        .disabled(terminalProcessStore.records(for: session).isEmpty)
+
                         Button("Refresh Health") {
                             terminalProcessStore.refresh()
                         }

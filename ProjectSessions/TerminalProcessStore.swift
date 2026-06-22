@@ -5,7 +5,7 @@ import Observation
 class TerminalProcessStore {
     private(set) var records: [TerminalProcessRecord] = []
 
-    private let recordsKey = "terminalProcessRecords.v1"
+    private let recordsKey = "terminalProcessRecords.v2"
 
     init() {
         loadRecords()

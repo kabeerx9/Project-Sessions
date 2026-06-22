@@ -10,6 +10,7 @@ struct SessionDetailView: View {
     let onOpenInCursor: @MainActor (ProjectSession) -> Void
     let onRunCommandsInTerminal: @MainActor (ProjectSession) -> Void
     let onStopTerminalProcesses: @MainActor (ProjectSession) -> Void
+    let onShutdownWorkspace: @MainActor (ProjectSession) -> Void
     let onRefreshTerminalProcesses: @MainActor () -> Void
     let onCopyCommands: @MainActor (ProjectSession) -> Void
     let onCopyRepositoryPathAndCommands: @MainActor (ProjectSession) -> Void
@@ -60,6 +61,11 @@ struct SessionDetailView: View {
                         onStopTerminalProcesses(session)
                     }
                     .disabled(terminalRunningCount == 0)
+
+                    Button("Shutdown Workspace") {
+                        onShutdownWorkspace(session)
+                    }
+                    .disabled(terminalProcessRecords.isEmpty)
 
                     Button("Refresh Health") {
                         onRefreshTerminalProcesses()
@@ -272,6 +278,7 @@ struct SessionDetailView: View {
         onOpenInCursor: { _ in },
         onRunCommandsInTerminal: { _ in },
         onStopTerminalProcesses: { _ in },
+        onShutdownWorkspace: { _ in },
         onRefreshTerminalProcesses: {},
         onCopyCommands: { _ in },
         onCopyRepositoryPathAndCommands: { _ in },

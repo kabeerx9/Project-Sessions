@@ -14,6 +14,7 @@ struct TerminalProcessRecord: Identifiable, Codable, Hashable {
     var title: String
     var command: String
     var workingDirectory: String
+    var terminalTabTitle: String
     var pidFilePath: String
     var exitFilePath: String
     var pid: Int32?

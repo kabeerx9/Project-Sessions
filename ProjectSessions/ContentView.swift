@@ -150,6 +150,9 @@ struct ContentView: View {
                 onStopTerminalProcesses: { session in
                     SessionLauncher.stopTerminalProcesses(for: session, terminalProcessStore: terminalProcessStore)
                 },
+                onShutdownWorkspace: { session in
+                    SessionLauncher.shutdownWorkspace(for: session, terminalProcessStore: terminalProcessStore)
+                },
                 onRefreshTerminalProcesses: {
                     terminalProcessStore.refresh()
                 },
