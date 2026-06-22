@@ -6,7 +6,6 @@ struct SessionDetailView: View {
     let onLaunch: @MainActor (ProjectSession) -> Void
     let onOpenFolder: @MainActor (ProjectSession) -> Void
     let onOpenInCursor: @MainActor (ProjectSession) -> Void
-    let onOpenInGhostty: @MainActor (ProjectSession) -> Void
     let onRunCommandsInTerminal: @MainActor (ProjectSession) -> Void
     let onCopyCommands: @MainActor (ProjectSession) -> Void
     let onCopyRepositoryPathAndCommands: @MainActor (ProjectSession) -> Void
@@ -45,11 +44,6 @@ struct SessionDetailView: View {
 
                     Button("Open in Cursor") {
                         onOpenInCursor(session)
-                    }
-                    .disabled(session.repositoryPath.isEmpty)
-
-                    Button("Open in Ghostty") {
-                        onOpenInGhostty(session)
                     }
                     .disabled(session.repositoryPath.isEmpty)
 
@@ -115,11 +109,6 @@ struct SessionDetailView: View {
                         restoreItem(
                             title: "Cursor",
                             value: session.repositoryPath.isEmpty ? "No repository path" : "Open repository"
-                        )
-
-                        restoreItem(
-                            title: "Ghostty",
-                            value: session.repositoryPath.isEmpty ? "No repository path" : "Open project folder"
                         )
 
                         restoreItem(
@@ -238,7 +227,6 @@ struct SessionDetailView: View {
         onLaunch: { _ in },
         onOpenFolder: { _ in },
         onOpenInCursor: { _ in },
-        onOpenInGhostty: { _ in },
         onRunCommandsInTerminal: { _ in },
         onCopyCommands: { _ in },
         onCopyRepositoryPathAndCommands: { _ in },

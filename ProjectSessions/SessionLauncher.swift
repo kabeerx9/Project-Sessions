@@ -5,7 +5,6 @@ enum SessionLauncher {
     static func restore(_ session: ProjectSession) {
         launchURLs(for: session)
         openRepositoryInCursor(session)
-        openRepositoryInGhostty(session)
 
         if !session.commands.isEmpty {
             runCommandsInTerminal(for: session)
@@ -70,31 +69,6 @@ enum SessionLauncher {
         }
     }
 
-    static func openRepositoryInGhostty(_ session: ProjectSession) {
-        let expandedRepositoryPath = expandedPath(session.repositoryPath)
-
-        guard FileManager.default.fileExists(atPath: expandedRepositoryPath) else {
-            print("Repository path does not exist: \(expandedRepositoryPath)")
-            return
-        }
-
-        let process = Process()
-        process.executableURL = URL(fileURLWithPath: "/usr/bin/open")
-        process.arguments = [
-            "-na",
-            "Ghostty.app",
-            "--args",
-            "--working-directory=\(expandedRepositoryPath)",
-            "--window-save-state=never"
-        ]
-
-        do {
-            try process.run()
-        } catch {
-            print("Could not open repository in Ghostty: \(error)")
-        }
-    }
-
     static func runCommandsInTerminal(for session: ProjectSession) {
         let expandedRepositoryPath = expandedPath(session.repositoryPath)
 
@@ -106,7 +80,6 @@ enum SessionLauncher {
         let plans = TerminalLaunchPlanner.plans(for: session)
 
         guard !plans.isEmpty else {
-            openRepositoryInGhostty(session)
             return
         }
 

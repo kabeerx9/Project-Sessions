@@ -36,11 +36,6 @@ struct ProjectSessionsApp: App {
                             SessionLauncher.openRepositoryInCursor(session)
                         }
 
-                        Button("Open in Ghostty") {
-                            SessionLauncher.openRepositoryInGhostty(session)
-                        }
-                        .disabled(session.repositoryPath.isEmpty)
-
                         Button("Run Commands in Terminal") {
                             SessionLauncher.runCommandsInTerminal(for: session)
                         }

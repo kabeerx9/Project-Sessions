@@ -506,7 +506,7 @@ Project Sessions needs terminal automation because a session is not only a folde
 - [x] Shell quoting paths
 - [x] Escaping strings for AppleScript
 - [x] Grouping commands with `&&`
-- [x] Distinguishing Terminal.app from Ghostty behavior
+- [x] Choosing Terminal.app as the MVP command runner
 
 ### Project Implementation
 
@@ -514,15 +514,13 @@ Project Sessions needs terminal automation because a session is not only a folde
 - [x] Run saved commands from the session repository path
 - [x] Keep the terminal open after commands finish
 - [x] Avoid opening an extra empty Terminal window when Terminal is closed
-- [x] Keep Ghostty as a folder opener for now
 - [ ] Add per-command run buttons
 - [ ] Improve grouped vs separate command behavior
-- [ ] Consider iTerm2 or Ghostty adapters later
+- [ ] Consider iTerm2 or another terminal adapter later
 
 ### Current MVP Decision
 
 - [x] Use Terminal.app as the default command runner
-- [x] Use Ghostty only to open the project folder
 - [ ] Add terminal app preferences later if needed
 
 ## Section 12: macOS App Polish
@@ -621,11 +619,10 @@ These should wait until the MVP is complete.
 - [ ] Browser profile support
 - [ ] Open multiple browser tabs
 - [x] Open Cursor workspace
-- [x] Open Ghostty at the project folder
 - [x] Run terminal commands in Terminal.app
 - [ ] Open multiple terminal tabs or windows intentionally
 - [ ] Run long-running dev servers in separate terminal surfaces
-- [ ] Consider Ghostty or iTerm2 as optional terminal adapters
+- [ ] Consider iTerm2 or another terminal as an optional adapter
 
 ### Session Health
 

@@ -136,9 +136,6 @@ struct ContentView: View {
                 onOpenInCursor: { session in
                     SessionLauncher.openRepositoryInCursor(session)
                 },
-                onOpenInGhostty: { session in
-                    SessionLauncher.openRepositoryInGhostty(session)
-                },
                 onRunCommandsInTerminal: { session in
                     SessionLauncher.runCommandsInTerminal(for: session)
                 },
