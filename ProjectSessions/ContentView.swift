@@ -121,150 +121,157 @@ struct ContentView: View {
     }
     
     var body: some View {
-        NavigationSplitView {
-            SessionSidebarView(
-                sessions: sessionStore.sessions,
-                selectedSessionID: $selectedSessionID,
-                onDeleteSessions: confirmDeleteSessions
-            )
-        } detail: {
-            SessionDetailView(
-                session: selectedSession,
-                terminalProcessRecords: selectedSession.map { terminalProcessStore.records(for: $0) } ?? [],
-                terminalRunningCount: selectedSession.map { terminalProcessStore.runningCount(for: $0) } ?? 0,
-                onRestore: { session in
-                    SessionLauncher.restore(session, terminalProcessStore: terminalProcessStore)
-                },
-                onLaunch: { session in
-                    SessionLauncher.launchURLs(for: session)
-                },
-                onOpenFolder: { session in
-                    SessionLauncher.openRepositoryInFinder(session)
-                },
-                onOpenInCursor: { session in
-                    SessionLauncher.openRepositoryInCursor(session)
-                },
-                onRunCommandsInTerminal: { session in
-                    SessionLauncher.runCommandsInTerminal(for: session, terminalProcessStore: terminalProcessStore)
-                },
-                onStopTerminalProcesses: { session in
-                    SessionLauncher.stopTerminalProcesses(for: session, terminalProcessStore: terminalProcessStore)
-                },
-                onShutdownWorkspace: { session in
-                    SessionLauncher.shutdownWorkspace(for: session, terminalProcessStore: terminalProcessStore)
-                },
-                onRefreshTerminalProcesses: {
-                    terminalProcessStore.refresh()
-                },
-                onCopyCommands: { session in
-                    CommandClipboard.copyCommands(for: session)
-                },
-                onCopyRepositoryPathAndCommands: { session in
-                    CommandClipboard.copyRepositoryPathAndCommands(for: session)
-                },
-                onCopyShellChain: { session in
-                    CommandClipboard.copyShellChain(for: session)
-                },
-                onEdit: startEditing,
-                onDelete: { session in
-                    sessionsToDelete = [session]
-                }
-            )
-        }
-        .toolbar {
-            Button {
-                isShowingNewSessionForm = true
-            } label: {
-                Label("New Session", systemImage: "plus")
-            }
-            .keyboardShortcut("n", modifiers: .command)
-        }
-        .sheet(isPresented: $isShowingNewSessionForm) {
-            SessionFormView(
-                title: nil,
-                name: $newSessionName,
-                browser: $newSessionBrowser,
-                browserProfileName: $newSessionBrowserProfileName,
-                repositoryPath: $newSessionRepositoryPath,
-                urls: $newSessionURLs,
-                urlDraft: $newSessionURLDraft,
-                commands: $newSessionCommands,
-                commandNameDraft: $newSessionCommandNameDraft,
-                commandDraft: $newSessionCommandDraft,
-                commandRunsInSeparateTerminal: $newSessionCommandRunsInSeparateTerminal,
-                onChooseFolder: {
-                    chooseRepositoryPathForNewSession()
-                },
-                onCancel: {
-                    resetNewSessionForm()
-                    isShowingNewSessionForm = false
-                },
-                onSave: {
-                    let newSession = ProjectSession(
-                        id: UUID(),
-                        name: newSessionName,
-                        browser: newSessionBrowser,
-                        browserProfileName: newSessionBrowserProfileName,
-                        urls: newSessionURLs,
-                        repositoryPath: newSessionRepositoryPath,
-                        commands: newSessionCommands
-                    )
-
-                    sessionStore.addSession(newSession)
-                    selectedSessionID = newSession.id
-                    resetNewSessionForm()
-                    isShowingNewSessionForm = false
-                }
-            )
-        }
-        .sheet(item: $editingSession) { _ in
-            SessionFormView(
-                title: "Edit Session",
-                name: $editSessionName,
-                browser: $editSessionBrowser,
-                browserProfileName: $editSessionBrowserProfileName,
-                repositoryPath: $editSessionRepositoryPath,
-                urls: $editSessionURLs,
-                urlDraft: $editSessionURLDraft,
-                commands: $editSessionCommands,
-                commandNameDraft: $editSessionCommandNameDraft,
-                commandDraft: $editSessionCommandDraft,
-                commandRunsInSeparateTerminal: $editSessionCommandRunsInSeparateTerminal,
-                onChooseFolder: {
-                    chooseRepositoryPathForEditSession()
-                },
-                onCancel: {
-                    editingSession = nil
-                },
-                onSave: {
-                    saveEditedSession()
-                }
-            )
-        }
-        .alert(
-            deleteAlertTitle,
-            isPresented: Binding(
-                get: {
-                    !sessionsToDelete.isEmpty
-                },
-                set: { isPresented in
-                    if !isPresented {
-                        sessionsToDelete = []
+        ZStack {
+            WiseColors.canvasSoft
+                .ignoresSafeArea()
+            
+            NavigationSplitView {
+                SessionSidebarView(
+                    sessions: sessionStore.sessions,
+                    selectedSessionID: $selectedSessionID,
+                    onDeleteSessions: confirmDeleteSessions
+                )
+                .navigationSplitViewColumnWidth(min: 240, ideal: 280)
+            } detail: {
+                SessionDetailView(
+                    session: selectedSession,
+                    terminalProcessRecords: selectedSession.map { terminalProcessStore.records(for: $0) } ?? [],
+                    terminalRunningCount: selectedSession.map { terminalProcessStore.runningCount(for: $0) } ?? 0,
+                    onRestore: { session in
+                        SessionLauncher.restore(session, terminalProcessStore: terminalProcessStore)
+                    },
+                    onLaunch: { session in
+                        SessionLauncher.launchURLs(for: session)
+                    },
+                    onOpenFolder: { session in
+                        SessionLauncher.openRepositoryInFinder(session)
+                    },
+                    onOpenInCursor: { session in
+                        SessionLauncher.openRepositoryInCursor(session)
+                    },
+                    onRunCommandsInTerminal: { session in
+                        SessionLauncher.runCommandsInTerminal(for: session, terminalProcessStore: terminalProcessStore)
+                    },
+                    onStopTerminalProcesses: { session in
+                        SessionLauncher.stopTerminalProcesses(for: session, terminalProcessStore: terminalProcessStore)
+                    },
+                    onShutdownWorkspace: { session in
+                        SessionLauncher.shutdownWorkspace(for: session, terminalProcessStore: terminalProcessStore)
+                    },
+                    onRefreshTerminalProcesses: {
+                        terminalProcessStore.refresh()
+                    },
+                    onCopyCommands: { session in
+                        CommandClipboard.copyCommands(for: session)
+                    },
+                    onCopyRepositoryPathAndCommands: { session in
+                        CommandClipboard.copyRepositoryPathAndCommands(for: session)
+                    },
+                    onCopyShellChain: { session in
+                        CommandClipboard.copyShellChain(for: session)
+                    },
+                    onEdit: startEditing,
+                    onDelete: { session in
+                        sessionsToDelete = [session]
                     }
+                )
+            }
+            .toolbar {
+                Button {
+                    isShowingNewSessionForm = true
+                } label: {
+                    Label("New Session", systemImage: "plus")
                 }
-            )
-        ) {
-            Button("Cancel", role: .cancel) {
-                sessionsToDelete = []
+                .keyboardShortcut("n", modifiers: .command)
             }
+            .sheet(isPresented: $isShowingNewSessionForm) {
+                SessionFormView(
+                    title: nil,
+                    name: $newSessionName,
+                    browser: $newSessionBrowser,
+                    browserProfileName: $newSessionBrowserProfileName,
+                    repositoryPath: $newSessionRepositoryPath,
+                    urls: $newSessionURLs,
+                    urlDraft: $newSessionURLDraft,
+                    commands: $newSessionCommands,
+                    commandNameDraft: $newSessionCommandNameDraft,
+                    commandDraft: $newSessionCommandDraft,
+                    commandRunsInSeparateTerminal: $newSessionCommandRunsInSeparateTerminal,
+                    onChooseFolder: {
+                        chooseRepositoryPathForNewSession()
+                    },
+                    onCancel: {
+                        resetNewSessionForm()
+                        isShowingNewSessionForm = false
+                    },
+                    onSave: {
+                        let newSession = ProjectSession(
+                            id: UUID(),
+                            name: newSessionName,
+                            browser: newSessionBrowser,
+                            browserProfileName: newSessionBrowserProfileName,
+                            urls: newSessionURLs,
+                            repositoryPath: newSessionRepositoryPath,
+                            commands: newSessionCommands
+                        )
 
-            Button("Delete", role: .destructive) {
-                deleteSessions(sessionsToDelete)
-                sessionsToDelete = []
+                        sessionStore.addSession(newSession)
+                        selectedSessionID = newSession.id
+                        resetNewSessionForm()
+                        isShowingNewSessionForm = false
+                    }
+                )
             }
-        } message: {
-            Text(deleteAlertMessage)
+            .sheet(item: $editingSession) { _ in
+                SessionFormView(
+                    title: "Edit Session",
+                    name: $editSessionName,
+                    browser: $editSessionBrowser,
+                    browserProfileName: $editSessionBrowserProfileName,
+                    repositoryPath: $editSessionRepositoryPath,
+                    urls: $editSessionURLs,
+                    urlDraft: $editSessionURLDraft,
+                    commands: $editSessionCommands,
+                    commandNameDraft: $editSessionCommandNameDraft,
+                    commandDraft: $editSessionCommandDraft,
+                    commandRunsInSeparateTerminal: $editSessionCommandRunsInSeparateTerminal,
+                    onChooseFolder: {
+                        chooseRepositoryPathForEditSession()
+                    },
+                    onCancel: {
+                        editingSession = nil
+                    },
+                    onSave: {
+                        saveEditedSession()
+                    }
+                )
+            }
+            .alert(
+                deleteAlertTitle,
+                isPresented: Binding(
+                    get: {
+                        !sessionsToDelete.isEmpty
+                    },
+                    set: { isPresented in
+                        if !isPresented {
+                            sessionsToDelete = []
+                        }
+                    }
+                )
+            ) {
+                Button("Cancel", role: .cancel) {
+                    sessionsToDelete = []
+                }
+
+                Button("Delete", role: .destructive) {
+                    deleteSessions(sessionsToDelete)
+                    sessionsToDelete = []
+                }
+            } message: {
+                Text(deleteAlertMessage)
+            }
         }
+        .preferredColorScheme(.light)
     }
 
     private var deleteAlertTitle: String {
@@ -279,6 +286,7 @@ struct ContentView: View {
         return "This will delete \(sessionsToDelete.count) sessions."
     }
 }
+
 #Preview {
     ContentView(
         sessionStore: SessionStore(),

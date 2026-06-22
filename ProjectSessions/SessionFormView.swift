@@ -22,15 +22,15 @@ struct SessionFormView: View {
 
     private var validationMessage: String? {
         if trimmedName.isEmpty {
-            return "Add a session name."
+            return "Session name is required"
         }
 
         if trimmedRepositoryPath.isEmpty {
-            return "Add a repository path."
+            return "Repository path is required"
         }
 
         if !repositoryPathExists {
-            return "Choose an existing repository folder."
+            return "Select an existing folder"
         }
 
         return nil
@@ -48,122 +48,260 @@ struct SessionFormView: View {
         Form {
             if let title {
                 Text(title)
-                    .font(.title)
+                    .font(.title2)
+                    .fontWeight(.semibold)
             }
 
-            TextField("Session name", text: $name)
-
-            Picker("Browser", selection: $browser) {
-                ForEach(browserOptions) { browser in
-                    Text(browser.rawValue).tag(browser)
-                }
-            }
-
-            if browser.supportsProfiles {
-                if browserProfiles.isEmpty {
-                    TextField("Browser profile", text: $browserProfileName)
-
-                    Text("No browser profiles detected. You can still enter a profile directory manually.")
-                        .font(.caption)
+            Section {
+                HStack(spacing: 8) {
+                    Image(systemName: "textformat")
                         .foregroundStyle(.secondary)
-                } else {
-                    Picker("Browser profile", selection: $browserProfileName) {
-                        Text("None").tag("")
+                        .frame(width: 20)
+                    TextField("Session name", text: $name)
+                }
+            } header: {
+                Label("Session", systemImage: "doc.text")
+                    .font(.headline)
+                    .foregroundStyle(.primary)
+            }
 
-                        ForEach(browserProfiles) { profile in
-                            Text(profile.pickerLabel).tag(profile.directoryName)
+            Section {
+                HStack(spacing: 8) {
+                    Image(systemName: browserIcon(for: browser))
+                        .foregroundStyle(.secondary)
+                        .frame(width: 20)
+                    Picker("Browser", selection: $browser) {
+                        ForEach(browserOptions) { browser in
+                            Text(browser.rawValue).tag(browser)
+                        }
+                    }
+                    .pickerStyle(.menu)
+                }
+
+                if browser.supportsProfiles {
+                    if browserProfiles.isEmpty {
+                        HStack(spacing: 8) {
+                            Image(systemName: "person")
+                                .foregroundStyle(.secondary)
+                                .frame(width: 20)
+                            TextField("Browser profile", text: $browserProfileName)
+                        }
+
+                        Text("No profiles detected. Enter profile directory manually.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .padding(.leading, 28)
+                    } else {
+                        HStack(spacing: 8) {
+                            Image(systemName: "person")
+                                .foregroundStyle(.secondary)
+                                .frame(width: 20)
+                            Picker("Profile", selection: $browserProfileName) {
+                                Text("None").tag("")
+                                ForEach(browserProfiles) { profile in
+                                    Text(profile.pickerLabel).tag(profile.directoryName)
+                                }
+                            }
+                            .pickerStyle(.menu)
                         }
                     }
                 }
+            } header: {
+                Label("Browser", systemImage: "globe")
+                    .font(.headline)
+                    .foregroundStyle(.primary)
             }
 
-            if !browser.supportsProfiles && !trimmedBrowserProfileName.isEmpty {
-                Text("Profiles are only supported for Chrome, Brave, and Edge.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-
-            TextField("Repository path", text: $repositoryPath)
-
-            Button("Choose Folder") {
-                onChooseFolder()
-            }
-
-            TextField("URL", text: $urlDraft)
-
-            Button("Add URL") {
-                addURL()
-            }
-            .disabled(trimmedURLDraft.isEmpty)
-
-            ForEach(urls, id: \.self) { url in
-                HStack {
-                    Text(url)
-                    Spacer()
-                    Button("Remove") {
-                        urls.removeAll { $0 == url }
+            Section {
+                HStack(spacing: 8) {
+                    Image(systemName: "folder")
+                        .foregroundStyle(.secondary)
+                        .frame(width: 20)
+                    TextField("Repository path", text: $repositoryPath)
+                    Button {
+                        onChooseFolder()
+                    } label: {
+                        Image(systemName: "folder.badge.plus")
                     }
+                    .buttonStyle(.borderless)
+                    .help("Choose folder")
                 }
+            } header: {
+                Label("Repository", systemImage: "folder.fill")
+                    .font(.headline)
+                    .foregroundStyle(.primary)
             }
 
-            TextField("Command name", text: $commandNameDraft)
-            TextField("Command", text: $commandDraft)
-            Toggle("Run in separate terminal", isOn: $commandRunsInSeparateTerminal)
+            Section {
+                HStack(spacing: 8) {
+                    Image(systemName: "link")
+                        .foregroundStyle(.secondary)
+                        .frame(width: 20)
+                    TextField("https://example.com", text: $urlDraft)
+                    Button {
+                        addURL()
+                    } label: {
+                        Image(systemName: "plus.circle.fill")
+                            .foregroundStyle(.blue)
+                    }
+                    .buttonStyle(.borderless)
+                    .disabled(trimmedURLDraft.isEmpty)
+                }
 
-            Button("Add Command") {
-                addCommand()
+                if !urls.isEmpty {
+                    VStack(alignment: .leading, spacing: 6) {
+                        ForEach(urls, id: \.self) { url in
+                            HStack(spacing: 8) {
+                                Image(systemName: "link.circle")
+                                    .foregroundStyle(.blue)
+                                    .frame(width: 20)
+                                Text(url)
+                                    .lineLimit(1)
+                                    .truncationMode(.middle)
+                                Spacer()
+                                Button {
+                                    urls.removeAll { $0 == url }
+                                } label: {
+                                    Image(systemName: "xmark.circle.fill")
+                                        .foregroundStyle(.secondary)
+                                }
+                                .buttonStyle(.borderless)
+                            }
+                        }
+                    }
+                    .padding(.leading, 28)
+                }
+            } header: {
+                Label("URLs", systemImage: "link.badge.plus")
+                    .font(.headline)
+                    .foregroundStyle(.primary)
             }
-            .disabled(trimmedCommandDraft.isEmpty)
 
-            ForEach(commands) { command in
-                HStack {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(command.name.isEmpty ? command.command : command.name)
-                        Text(command.command)
-                            .font(.caption)
+            Section {
+                VStack(alignment: .leading, spacing: 12) {
+                    HStack(spacing: 8) {
+                        Image(systemName: "terminal")
                             .foregroundStyle(.secondary)
+                            .frame(width: 20)
+                        TextField("Command name (optional)", text: $commandNameDraft)
+                    }
+
+                    HStack(spacing: 8) {
+                        Image(systemName: "chevron.right")
+                            .foregroundStyle(.secondary)
+                            .frame(width: 20)
+                        TextField("npm run dev", text: $commandDraft)
+                    }
+
+                    Toggle(isOn: $commandRunsInSeparateTerminal) {
+                        HStack(spacing: 8) {
+                            Spacer()
+                                .frame(width: 20)
+                            Text("Run in separate terminal")
+                        }
+                    }
+
+                    HStack {
+                        Spacer()
+                        Button {
+                            addCommand()
+                        } label: {
+                            Label("Add Command", systemImage: "plus")
+                        }
+                        .disabled(trimmedCommandDraft.isEmpty)
+                        .controlSize(.small)
+                    }
+                }
+
+                if !commands.isEmpty {
+                    VStack(alignment: .leading, spacing: 8) {
+                        ForEach(commands) { command in
+                            HStack(spacing: 8) {
+                                Image(systemName: "terminal.fill")
+                                    .foregroundStyle(.green)
+                                    .frame(width: 20)
+
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(command.name.isEmpty ? command.command : command.name)
+                                        .fontWeight(.medium)
+                                    if !command.name.isEmpty {
+                                        Text(command.command)
+                                            .font(.caption)
+                                            .foregroundStyle(.secondary)
+                                    }
+                                }
+
+                                Spacer()
+
+                                if command.runsInSeparateTerminal {
+                                    Image(systemName: "window.terminal")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+
+                                Button {
+                                    commands.removeAll { $0.id == command.id }
+                                } label: {
+                                    Image(systemName: "xmark.circle.fill")
+                                        .foregroundStyle(.secondary)
+                                }
+                                .buttonStyle(.borderless)
+                            }
+                            .padding(.vertical, 4)
+                        }
+                    }
+                    .padding(.leading, 28)
+                }
+            } header: {
+                Label("Commands", systemImage: "terminal.fill")
+                    .font(.headline)
+                    .foregroundStyle(.primary)
+            }
+
+            Section {
+                if let validationMessage {
+                    Label(validationMessage, systemImage: "exclamationmark.triangle")
+                        .font(.caption)
+                        .foregroundStyle(.orange)
+                }
+
+                HStack {
+                    Button(role: .cancel) {
+                        onCancel()
+                    } label: {
+                        Label("Cancel", systemImage: "xmark")
                     }
 
                     Spacer()
 
-                    if command.runsInSeparateTerminal {
-                        Text("Separate terminal")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                    Button {
+                        saveForm()
+                    } label: {
+                        Label("Save Session", systemImage: "checkmark")
                     }
-
-                    Button("Remove") {
-                        commands.removeAll { $0.id == command.id }
-                    }
+                    .disabled(!canSave)
+                    .keyboardShortcut(.defaultAction)
                 }
-            }
-
-            HStack {
-                Button("Cancel") {
-                    onCancel()
-                }
-
-                Spacer()
-
-                Button("Save") {
-                    saveForm()
-                }
-                .disabled(!canSave)
-            }
-
-            if let validationMessage {
-                Text(validationMessage)
-                    .font(.caption)
-                    .foregroundStyle(.red)
             }
         }
+        .formStyle(.grouped)
         .padding()
-        .frame(width: 420)
+        .frame(width: 480, height: 620)
         .onAppear {
             cleanBrowserSelection()
         }
         .onChange(of: browser) { _, newBrowser in
             cleanBrowserProfileSelection(for: newBrowser)
+        }
+    }
+
+    private func browserIcon(for browser: Browser) -> String {
+        switch browser {
+        case .chrome: return "globe"
+        case .brave: return "globe"
+        case .edge: return "globe"
+        case .firefox: return "globe"
+        case .safari: return "safari"
         }
     }
 
