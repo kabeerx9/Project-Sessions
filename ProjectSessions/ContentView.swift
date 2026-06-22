@@ -10,6 +10,7 @@ import SwiftUI
 struct ContentView: View {
     let sessionStore: SessionStore
     let terminalProcessStore: TerminalProcessStore
+    let workspaceRuntimeStore: WorkspaceRuntimeStore
     @State private var selectedSessionID: ProjectSession.ID?
     
     @State private var isShowingNewSessionForm = false
@@ -59,6 +60,7 @@ struct ContentView: View {
 
     private func deleteSessions(_ sessionsToDelete: [ProjectSession]) {
         let deletedIDs = sessionsToDelete.map(\.id)
+        workspaceRuntimeStore.removeRuntimes(for: sessionsToDelete)
         sessionStore.deleteSessions(sessionsToDelete)
         
         if let selectedSessionID, deletedIDs.contains(selectedSessionID) {
@@ -135,9 +137,11 @@ struct ContentView: View {
             } detail: {
                 SessionDetailView(
                     session: selectedSession,
+                    workspaceRuntime: selectedSession.flatMap { workspaceRuntimeStore.runtime(for: $0) },
                     terminalProcessRecords: selectedSession.map { terminalProcessStore.records(for: $0) } ?? [],
                     terminalRunningCount: selectedSession.map { terminalProcessStore.runningCount(for: $0) } ?? 0,
                     onRestore: { session in
+                        workspaceRuntimeStore.markStarted(session)
                         SessionLauncher.restore(session, terminalProcessStore: terminalProcessStore)
                     },
                     onLaunch: { session in
@@ -157,6 +161,7 @@ struct ContentView: View {
                     },
                     onShutdownWorkspace: { session in
                         SessionLauncher.shutdownWorkspace(for: session, terminalProcessStore: terminalProcessStore)
+                        workspaceRuntimeStore.markStopped(session)
                     },
                     onRefreshTerminalProcesses: {
                         terminalProcessStore.refresh()
@@ -290,6 +295,7 @@ struct ContentView: View {
 #Preview {
     ContentView(
         sessionStore: SessionStore(),
-        terminalProcessStore: TerminalProcessStore()
+        terminalProcessStore: TerminalProcessStore(),
+        workspaceRuntimeStore: WorkspaceRuntimeStore()
     )
 }

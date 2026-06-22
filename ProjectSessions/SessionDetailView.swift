@@ -1,7 +1,9 @@
+import Foundation
 import SwiftUI
 
 struct SessionDetailView: View {
     let session: ProjectSession?
+    let workspaceRuntime: WorkspaceRuntime?
     let terminalProcessRecords: [TerminalProcessRecord]
     let terminalRunningCount: Int
     let onRestore: @MainActor (ProjectSession) -> Void
@@ -86,13 +88,20 @@ struct SessionDetailView: View {
                         WiseActionTile(icon: "terminal.fill", title: "Run Commands", isDisabled: session.repositoryPath.isEmpty || session.commands.isEmpty) { onRunCommandsInTerminal(session) }
                     }
                     HStack(spacing: WiseRadii.xl) {
-                        WiseActionTile(icon: "power", title: "Shutdown Workspace", isDisabled: terminalProcessRecords.isEmpty) { onShutdownWorkspace(session) }
+                        WiseActionTile(icon: "power", title: "Shutdown Workspace", isDisabled: !isWorkspaceActive && terminalProcessRecords.isEmpty) { onShutdownWorkspace(session) }
                     }
                 }
                 .frame(maxWidth: .infinity)
                 
                 // Right Column: Stats
                 VStack(spacing: WiseRadii.xl) {
+                    WiseStatTile(
+                        icon: isWorkspaceActive ? "play.circle.fill" : "stop.circle.fill",
+                        title: "Workspace",
+                        value: isWorkspaceActive ? "Active" : "Stopped",
+                        subvalue: workspaceStatusSubvalue,
+                        highlightColor: isWorkspaceActive ? WiseColors.positive : nil
+                    )
                     WiseStatTile(icon: "safari.fill", title: "Browser", value: session.browser.rawValue, subvalue: session.browserProfileName.isEmpty ? "Default Profile" : session.browserProfileName)
                     WiseStatTile(icon: "waveform.path.ecg", title: "Running Tasks", value: "\(terminalRunningCount)", subvalue: terminalRunningCount == 0 ? "Idle" : "Active processes", highlightColor: terminalRunningCount > 0 ? WiseColors.positive : nil)
                 }
@@ -150,8 +159,8 @@ struct SessionDetailView: View {
                 
                 Button {
                     withAnimation { isRestoring = true }
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.8) {
-                        onRestore(session)
+                    onRestore(session)
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
                         withAnimation { isRestoring = false }
                     }
                 } label: {
@@ -285,6 +294,27 @@ struct SessionDetailView: View {
         if !session.urls.isEmpty { return "globe.americas.fill" }
         if !session.commands.isEmpty { return "terminal.fill" }
         return "doc.text.fill"
+    }
+
+    private var isWorkspaceActive: Bool {
+        workspaceRuntime?.status == .active
+    }
+
+    private var workspaceStatusSubvalue: String {
+        guard let workspaceRuntime else {
+            return "Not started"
+        }
+
+        switch workspaceRuntime.status {
+        case .active:
+            return "Started \(workspaceRuntime.startedAt.formatted(date: .omitted, time: .shortened))"
+        case .stopped:
+            guard let stoppedAt = workspaceRuntime.stoppedAt else {
+                return "Stopped"
+            }
+
+            return "Stopped \(stoppedAt.formatted(date: .omitted, time: .shortened))"
+        }
     }
 
     private func statusColor(for status: TerminalProcessStatus) -> Color {

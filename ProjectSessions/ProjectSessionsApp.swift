@@ -11,13 +11,15 @@ import SwiftUI
 struct ProjectSessionsApp: App {
     @State private var sessionStore = SessionStore()
     @State private var terminalProcessStore = TerminalProcessStore()
+    @State private var workspaceRuntimeStore = WorkspaceRuntimeStore()
     @Environment(\.openWindow) private var openWindow
 
     var body: some Scene {
         WindowGroup(id: "main") {
             ContentView(
                 sessionStore: sessionStore,
-                terminalProcessStore: terminalProcessStore
+                terminalProcessStore: terminalProcessStore,
+                workspaceRuntimeStore: workspaceRuntimeStore
             )
         }
         .windowStyle(.hiddenTitleBar)
@@ -30,6 +32,7 @@ struct ProjectSessionsApp: App {
                 ForEach(sessionStore.sessions) { session in
                     Menu(session.name) {
                         Button("Restore Session") {
+                            workspaceRuntimeStore.markStarted(session)
                             SessionLauncher.restore(session, terminalProcessStore: terminalProcessStore)
                         }
 
@@ -62,8 +65,9 @@ struct ProjectSessionsApp: App {
                                 for: session,
                                 terminalProcessStore: terminalProcessStore
                             )
+                            workspaceRuntimeStore.markStopped(session)
                         }
-                        .disabled(terminalProcessStore.records(for: session).isEmpty)
+                        .disabled(!workspaceRuntimeStore.isActive(session) && terminalProcessStore.records(for: session).isEmpty)
 
                         Button("Refresh Health") {
                             terminalProcessStore.refresh()
