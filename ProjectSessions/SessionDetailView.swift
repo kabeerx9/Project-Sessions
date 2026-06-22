@@ -6,6 +6,7 @@ struct SessionDetailView: View {
     let workspaceRuntime: WorkspaceRuntime?
     let terminalProcessRecords: [TerminalProcessRecord]
     let terminalRunningCount: Int
+    let experimentalCommandRunner: ExperimentalCommandRunner
     let onRestore: @MainActor (ProjectSession) -> Void
     let onLaunch: @MainActor (ProjectSession) -> Void
     let onOpenFolder: @MainActor (ProjectSession) -> Void
@@ -29,6 +30,7 @@ struct SessionDetailView: View {
                     VStack(alignment: .leading, spacing: 16) {
                         header(session)
                         quickActions(session)
+                        nativeRunnerLab(session)
                         detailsGrid(session)
 
                         if !terminalProcessRecords.isEmpty {
@@ -180,6 +182,68 @@ struct SessionDetailView: View {
                         onRunCommandsInTerminal(session)
                     }
                 }
+            }
+        }
+    }
+
+    private func nativeRunnerLab(_ session: ProjectSession) -> some View {
+        Panel {
+            VStack(alignment: .leading, spacing: 14) {
+                HStack {
+                    SectionHeader("Native Runner Lab", systemImage: "terminal")
+
+                    Spacer()
+
+                    StatusPill(
+                        text: experimentalCommandRunner.status.rawValue.capitalized,
+                        color: experimentalRunnerStatusColor
+                    )
+                }
+
+                HStack(spacing: 10) {
+                    Button {
+                        guard let command = session.commands.first else {
+                            return
+                        }
+
+                        experimentalCommandRunner.start(
+                            title: displayName(for: command),
+                            command: command.command,
+                            workingDirectory: session.repositoryPath
+                        )
+                    } label: {
+                        Label("Run First Command", systemImage: "play.fill")
+                    }
+                    .disabled(session.commands.isEmpty || session.repositoryPath.isEmpty || experimentalCommandRunner.isRunning)
+
+                    Button {
+                        experimentalCommandRunner.stop()
+                    } label: {
+                        Label("Stop", systemImage: "stop.fill")
+                    }
+                    .disabled(!experimentalCommandRunner.isRunning)
+
+                    Spacer()
+
+                    if let pid = experimentalCommandRunner.pid {
+                        Text("PID \(pid)")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+
+                ScrollView {
+                    Text(experimentalCommandRunner.output.isEmpty ? "No output yet." : experimentalCommandRunner.output)
+                        .font(.system(size: 12, design: .monospaced))
+                        .foregroundStyle(.primary)
+                        .textSelection(.enabled)
+                        .frame(maxWidth: .infinity, alignment: .topLeading)
+                        .padding(12)
+                }
+                .frame(minHeight: 180, maxHeight: 260)
+                .background(Color.black.opacity(0.88))
+                .foregroundStyle(.white)
+                .clipShape(RoundedRectangle(cornerRadius: WiseRadii.md, style: .continuous))
             }
         }
     }
@@ -347,6 +411,25 @@ struct SessionDetailView: View {
         case .exited:
             WiseColors.mute
         }
+    }
+
+    private var experimentalRunnerStatusColor: Color {
+        switch experimentalCommandRunner.status {
+        case .idle:
+            WiseColors.mute
+        case .running:
+            WiseColors.positive
+        case .exited:
+            WiseColors.mute
+        case .failed:
+            WiseColors.negative
+        case .stopped:
+            WiseColors.warningDeep
+        }
+    }
+
+    private func displayName(for command: TerminalCommand) -> String {
+        command.name.isEmpty ? command.command : command.name
     }
 }
 
