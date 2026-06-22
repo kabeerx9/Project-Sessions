@@ -4,6 +4,8 @@ enum Browser: String, Codable, CaseIterable, Identifiable {
     case chrome = "Chrome"
     case safari = "Safari"
     case brave = "Brave"
+    case edge = "Microsoft Edge"
+    case firefox = "Firefox"
 
     var id: String {
         rawValue
@@ -17,6 +19,10 @@ enum Browser: String, Codable, CaseIterable, Identifiable {
             "Safari"
         case .brave:
             "Brave Browser"
+        case .edge:
+            "Microsoft Edge"
+        case .firefox:
+            "Firefox"
         }
     }
 
@@ -28,14 +34,18 @@ enum Browser: String, Codable, CaseIterable, Identifiable {
             "com.apple.Safari"
         case .brave:
             "com.brave.Browser"
+        case .edge:
+            "com.microsoft.edgemac"
+        case .firefox:
+            "org.mozilla.firefox"
         }
     }
 
     var supportsProfiles: Bool {
         switch self {
-        case .chrome, .brave:
+        case .chrome, .brave, .edge:
             true
-        case .safari:
+        case .safari, .firefox:
             false
         }
     }

@@ -228,7 +228,7 @@ enum SessionLauncher {
     }
 
     private static func browserIsInstalled(_ browser: Browser) -> Bool {
-        NSWorkspace.shared.urlForApplication(withBundleIdentifier: browser.bundleIdentifier) != nil
+        BrowserDetector.isInstalled(browser)
     }
 
     private static func repositoryPathExists(_ path: String) -> Bool {

@@ -36,6 +36,14 @@ struct SessionFormView: View {
         return nil
     }
 
+    private var browserProfiles: [BrowserProfile] {
+        BrowserProfileDetector.profiles(for: browser)
+    }
+
+    private var browserOptions: [Browser] {
+        BrowserDetector.installedSupportedBrowsers
+    }
+
     var body: some View {
         Form {
             if let title {
@@ -46,15 +54,31 @@ struct SessionFormView: View {
             TextField("Session name", text: $name)
 
             Picker("Browser", selection: $browser) {
-                ForEach(Browser.allCases) { browser in
+                ForEach(browserOptions) { browser in
                     Text(browser.rawValue).tag(browser)
                 }
             }
 
-            TextField("Browser profile", text: $browserProfileName)
+            if browser.supportsProfiles {
+                if browserProfiles.isEmpty {
+                    TextField("Browser profile", text: $browserProfileName)
+
+                    Text("No browser profiles detected. You can still enter a profile directory manually.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                } else {
+                    Picker("Browser profile", selection: $browserProfileName) {
+                        Text("None").tag("")
+
+                        ForEach(browserProfiles) { profile in
+                            Text(profile.pickerLabel).tag(profile.directoryName)
+                        }
+                    }
+                }
+            }
 
             if !browser.supportsProfiles && !trimmedBrowserProfileName.isEmpty {
-                Text("Profiles are only supported for Chrome and Brave.")
+                Text("Profiles are only supported for Chrome, Brave, and Edge.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -135,6 +159,12 @@ struct SessionFormView: View {
         }
         .padding()
         .frame(width: 420)
+        .onAppear {
+            cleanBrowserSelection()
+        }
+        .onChange(of: browser) { _, newBrowser in
+            cleanBrowserProfileSelection(for: newBrowser)
+        }
     }
 
     private func addURL() {
@@ -172,7 +202,7 @@ struct SessionFormView: View {
         }
 
         name = trimmedName
-        browserProfileName = trimmedBrowserProfileName
+        browserProfileName = browser.supportsProfiles ? trimmedBrowserProfileName : ""
         repositoryPath = trimmedRepositoryPath
         urls = urls
             .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
@@ -242,6 +272,32 @@ struct SessionFormView: View {
         }
 
         return "\(homeDirectory)/\(trimmedRepositoryPath)"
+    }
+
+    private func cleanBrowserProfileSelection(for browser: Browser) {
+        guard browser.supportsProfiles else {
+            browserProfileName = ""
+            return
+        }
+
+        let profiles = BrowserProfileDetector.profiles(for: browser)
+
+        guard !profiles.isEmpty,
+              !profiles.contains(where: { $0.directoryName == browserProfileName }) else {
+            return
+        }
+
+        browserProfileName = ""
+    }
+
+    private func cleanBrowserSelection() {
+        guard !browserOptions.contains(browser),
+              let firstBrowser = browserOptions.first else {
+            return
+        }
+
+        browser = firstBrowser
+        cleanBrowserProfileSelection(for: firstBrowser)
     }
 }
 
