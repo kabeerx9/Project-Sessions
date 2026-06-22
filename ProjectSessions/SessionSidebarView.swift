@@ -17,6 +17,7 @@ struct SessionSidebarView: View {
                 Button("Create") {
                     onCreateSession()
                 }
+                .keyboardShortcut("n", modifiers: .command)
             }
             .padding([.horizontal, .top])
 

@@ -490,7 +490,7 @@ After the MVP works, improve how the app feels as a native macOS application.
 
 - [ ] Window sizing
 - [ ] Toolbar buttons
-- [ ] Keyboard shortcuts
+- [x] Keyboard shortcuts
 - [ ] Menus
 - [x] Confirmation dialogs
 - [x] Native alerts
@@ -499,7 +499,7 @@ After the MVP works, improve how the app feels as a native macOS application.
 ### Project Implementation
 
 - [ ] Add toolbar actions
-- [ ] Add keyboard shortcut for creating a session
+- [x] Add keyboard shortcut for creating a session
 - [x] Add delete confirmation
 - [ ] Improve empty states
 - [ ] Add app icon
