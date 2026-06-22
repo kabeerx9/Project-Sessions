@@ -488,7 +488,7 @@ After the MVP works, improve how the app feels as a native macOS application.
 
 ### Concepts To Learn
 
-- [ ] Window sizing
+- [x] Window sizing
 - [x] Toolbar buttons
 - [x] Keyboard shortcuts
 - [ ] Menus
@@ -501,6 +501,7 @@ After the MVP works, improve how the app feels as a native macOS application.
 - [x] Add toolbar actions
 - [x] Add keyboard shortcut for creating a session
 - [x] Add delete confirmation
+- [x] Set a sensible default window size
 - [ ] Improve empty states
 - [ ] Add app icon
 
