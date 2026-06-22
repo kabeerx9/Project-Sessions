@@ -103,6 +103,35 @@ struct SessionDetailView: View {
                 .foregroundStyle(.secondary)
 
                 VStack(alignment: .leading, spacing: 8) {
+                    Text("Restore includes")
+                        .font(.headline)
+
+                    VStack(alignment: .leading, spacing: 6) {
+                        restoreItem(
+                            title: "Browser URLs",
+                            value: session.urls.isEmpty ? "None" : "\(session.urls.count) in \(session.browser.rawValue)"
+                        )
+
+                        restoreItem(
+                            title: "Cursor",
+                            value: session.repositoryPath.isEmpty ? "No repository path" : "Open repository"
+                        )
+
+                        restoreItem(
+                            title: "Ghostty",
+                            value: session.repositoryPath.isEmpty ? "No repository path" : "Open project folder"
+                        )
+
+                        restoreItem(
+                            title: "Terminal commands",
+                            value: session.commands.isEmpty ? "None" : "\(session.commands.count) saved"
+                        )
+                    }
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                }
+
+                VStack(alignment: .leading, spacing: 8) {
                     Text("Browser")
                         .font(.headline)
 
@@ -180,6 +209,15 @@ struct SessionDetailView: View {
                 copiedMessage = nil
             }
         }
+    }
+
+    private func restoreItem(title: String, value: String) -> some View {
+        HStack {
+            Text(title)
+            Spacer()
+            Text(value)
+        }
+        .frame(maxWidth: 360)
     }
 }
 

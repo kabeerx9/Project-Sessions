@@ -16,16 +16,18 @@ The first version should stay simple, local-only, and focused on real workflow v
 
 The first version should support:
 
-- [ ] Create project sessions
-- [ ] Edit project sessions
-- [ ] Delete project sessions
-- [ ] Store a session name
-- [ ] Store browser URLs
-- [ ] Store a repository path
-- [ ] Store terminal commands
-- [ ] Launch URLs in a browser
-- [ ] Open the repository in Cursor
-- [ ] Persist sessions locally
+- [x] Create project sessions
+- [x] Edit project sessions
+- [x] Delete project sessions
+- [x] Store a session name
+- [x] Store browser URLs
+- [x] Store a repository path
+- [x] Store terminal commands
+- [x] Launch URLs in a browser
+- [x] Open the repository in Cursor
+- [x] Open the repository in a terminal app
+- [x] Run saved terminal commands
+- [x] Persist sessions locally
 
 Out of scope for MVP:
 
@@ -58,9 +60,10 @@ Out of scope for MVP:
 8. Navigation
 9. Launching apps and URLs with NSWorkspace
 10. Process API
-11. macOS app polish
-12. MenuBarExtra
-13. AppKit only when needed
+11. Terminal automation
+12. macOS app polish
+13. MenuBarExtra
+14. AppKit only when needed
 
 ## Section 1: SwiftUI Fundamentals
 
@@ -473,16 +476,56 @@ The Process API is for starting and controlling command-line programs. It should
 
 ### Project Implementation
 
-- [ ] Explore how a command could be launched
+- [x] Explore how a command could be launched
 - [x] Store terminal commands without running them
 - [x] Replace raw command strings with `TerminalCommand`
 - [x] Store command metadata for future terminal tabs
 - [x] Copy saved commands to the clipboard
 - [x] Copy commands as a single shell chain with `&&`
-- [x] Defer automatic terminal command execution until after the MVP
-- [ ] Decide whether terminal control belongs in the app
+- [x] Decide whether terminal control belongs in the app
 
-## Section 11: macOS App Polish
+## Section 11: Terminal Automation
+
+Project Sessions needs terminal automation because a session is not only a folder or a set of URLs. It often includes commands that should run from the project directory.
+
+### React Equivalent
+
+- Terminal app automation = calling an external native integration
+- `NSRunningApplication` = checking whether another app is mounted/running
+- AppleScript = imperative bridge into another app
+- macOS Automation permission = browser permission prompt, but system-wide
+- Shell quoting = escaping user-controlled strings before sending them to a shell
+
+### Concepts To Learn
+
+- [x] `NSRunningApplication`
+- [x] Checking whether Terminal is already running
+- [x] `NSAppleScript`
+- [x] Apple Events permission prompts
+- [x] Handling `-1743` Automation permission errors
+- [x] Shell quoting paths
+- [x] Escaping strings for AppleScript
+- [x] Grouping commands with `&&`
+- [x] Distinguishing Terminal.app from Ghostty behavior
+
+### Project Implementation
+
+- [x] Add `Run Commands in Terminal`
+- [x] Run saved commands from the session repository path
+- [x] Keep the terminal open after commands finish
+- [x] Avoid opening an extra empty Terminal window when Terminal is closed
+- [x] Keep Ghostty as a folder opener for now
+- [ ] Add per-command run buttons
+- [ ] Improve grouped vs separate command behavior
+- [ ] Consider iTerm2 or Ghostty adapters later
+
+### Current MVP Decision
+
+- [x] Use Terminal.app as the default command runner
+- [x] Use Ghostty only to open the project folder
+- [ ] Add terminal app preferences later if needed
+
+## Section 12: macOS App Polish
 
 After the MVP works, improve how the app feels as a native macOS application.
 
@@ -515,7 +558,7 @@ After the MVP works, improve how the app feels as a native macOS application.
 - [x] Improve empty states
 - [ ] Add app icon
 
-## Section 12: MenuBarExtra
+## Section 13: MenuBarExtra
 
 `MenuBarExtra` allows a macOS app to live in the menu bar. This can make Project Sessions feel like a fast project launcher.
 
@@ -543,7 +586,7 @@ After the MVP works, improve how the app feels as a native macOS application.
 - [x] Move session state into `SessionStore`
 - [x] Move persistence out of `ContentView`
 
-## Section 13: AppKit Only When Needed
+## Section 14: AppKit Only When Needed
 
 SwiftUI should be the default. AppKit should be introduced only when SwiftUI cannot cleanly solve a macOS-specific problem.
 
@@ -577,10 +620,12 @@ These should wait until the MVP is complete.
 
 - [ ] Browser profile support
 - [ ] Open multiple browser tabs
-- [ ] Open Cursor workspace
+- [x] Open Cursor workspace
 - [x] Open Ghostty at the project folder
-- [ ] Open multiple Ghostty tabs or windows
-- [ ] Run terminal commands in separate tabs for long-running dev servers
+- [x] Run terminal commands in Terminal.app
+- [ ] Open multiple terminal tabs or windows intentionally
+- [ ] Run long-running dev servers in separate terminal surfaces
+- [ ] Consider Ghostty or iTerm2 as optional terminal adapters
 
 ### Session Health
 

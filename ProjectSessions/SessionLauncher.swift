@@ -5,10 +5,9 @@ enum SessionLauncher {
     static func restore(_ session: ProjectSession) {
         launchURLs(for: session)
         openRepositoryInCursor(session)
+        openRepositoryInGhostty(session)
 
-        if session.commands.isEmpty {
-            openRepositoryInGhostty(session)
-        } else {
+        if !session.commands.isEmpty {
             runCommandsInTerminal(for: session)
         }
     }
