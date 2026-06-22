@@ -177,6 +177,7 @@ enum SessionLauncher {
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 2.2) {
             closeTerminalWindows(for: session, terminalProcessStore: terminalProcessStore)
+            terminalProcessStore.clearRecords(for: session)
             terminalProcessStore.refresh()
         }
     }
@@ -409,11 +410,9 @@ enum SessionLauncher {
             return
         }
 
-        let windowIDChecks = windowIDs.isEmpty
-            ? "false"
-            : windowIDs
-                .map { "windowID is \($0)" }
-                .joined(separator: " or ")
+        let windowIDList = windowIDs.isEmpty
+            ? "{}"
+            : "{\(windowIDs.map(String.init).joined(separator: ", "))}"
 
         let titleChecks = tabTitles.isEmpty
             ? "false"
@@ -423,40 +422,55 @@ enum SessionLauncher {
 
         let script = """
         tell application "Terminal"
-            set debugLines to {}
-            set windowsToClose to {}
+            set targetWindowIDs to \(windowIDList)
             set matchingWindowIDs to {}
             set matchingTabTitles to {}
 
-            repeat with terminalWindow in windows
-                set windowID to id of terminalWindow
+            repeat 3 times
+                repeat with targetWindowID in targetWindowIDs
+                    set targetWindowIDNumber to targetWindowID as integer
+                    set windowToClose to missing value
 
-                if \(windowIDChecks) then
-                    set end of windowsToClose to terminalWindow
-                    set end of matchingWindowIDs to windowID
-                end if
+                    repeat with terminalWindow in windows
+                        if id of terminalWindow is targetWindowIDNumber then
+                            set windowToClose to terminalWindow
+                            set end of matchingWindowIDs to targetWindowIDNumber
+                            exit repeat
+                        end if
+                    end repeat
+
+                    if windowToClose is not missing value then
+                        close windowToClose saving no
+                    end if
+                end repeat
+
+                delay 0.2
             end repeat
 
-            repeat with terminalWindow in windowsToClose
-                close terminalWindow
-            end repeat
+            repeat 3 times
+                set tabWindowToClose to missing value
 
-            set tabWindowsToClose to {}
+                repeat with terminalWindow in windows
+                    repeat with terminalTab in tabs of terminalWindow
+                        set tabTitle to custom title of terminalTab
 
-            repeat with terminalWindow in windows
-                repeat with terminalTab in tabs of terminalWindow
-                    set tabTitle to custom title of terminalTab
+                        if \(titleChecks) then
+                            set tabWindowToClose to terminalWindow
+                            set end of matchingTabTitles to tabTitle
+                            exit repeat
+                        end if
+                    end repeat
 
-                    if \(titleChecks) then
-                        set end of tabWindowsToClose to terminalWindow
-                        set end of matchingTabTitles to tabTitle
+                    if tabWindowToClose is not missing value then
                         exit repeat
                     end if
                 end repeat
-            end repeat
 
-            repeat with terminalWindow in tabWindowsToClose
-                close terminalWindow
+                if tabWindowToClose is not missing value then
+                    close tabWindowToClose saving no
+                end if
+
+                delay 0.2
             end repeat
 
             return "windowIDs=" & (matchingWindowIDs as string) & "; tabTitles=" & (matchingTabTitles as string)

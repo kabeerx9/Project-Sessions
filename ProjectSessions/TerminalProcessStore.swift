@@ -90,6 +90,11 @@ class TerminalProcessStore {
         saveRecords()
     }
 
+    func clearRecords(for session: ProjectSession) {
+        records.removeAll { $0.sessionID == session.id }
+        saveRecords()
+    }
+
     private func readPID(from path: String) -> Int32? {
         guard let contents = try? String(contentsOfFile: path, encoding: .utf8) else {
             return nil
