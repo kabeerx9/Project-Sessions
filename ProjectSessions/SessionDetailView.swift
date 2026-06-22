@@ -194,14 +194,6 @@ struct SessionDetailView: View {
                         Label("Stop All", systemImage: "stop.fill")
                     }
                     .disabled(commandRunStore.runningCount(for: session) == 0)
-
-                    Spacer()
-
-                    if let pid = selectedRun?.pid {
-                        Text("PID \(pid)")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
                 }
 
                 if !runs.isEmpty {
@@ -228,33 +220,18 @@ struct SessionDetailView: View {
                     }
                 }
 
-                HStack(spacing: 10) {
-                    Button {
-                        if let selectedRun {
-                            commandRunStore.stop(selectedRun)
-                        }
-                    } label: {
-                        Label("Stop", systemImage: "stop.fill")
-                    }
-                    .disabled(selectedRun?.isRunning != true)
+                HStack(alignment: .center, spacing: 12) {
+                    selectedRunSummary(selectedRun)
 
-                    Button {
-                        if let selectedRun {
-                            commandRunStore.restart(selectedRun, for: session)
-                        }
-                    } label: {
-                        Label("Restart", systemImage: "arrow.clockwise")
-                    }
-                    .disabled(selectedRun == nil)
+                    Spacer()
 
                     Button {
                         selectedRun?.clearOutput()
                     } label: {
-                        Label("Clear", systemImage: "trash")
+                        Label("Clear Log", systemImage: "trash")
                     }
+                    .controlSize(.small)
                     .disabled(selectedRun == nil)
-
-                    Spacer()
                 }
 
                 ScrollViewReader { proxy in
@@ -285,6 +262,38 @@ struct SessionDetailView: View {
                 .clipShape(RoundedRectangle(cornerRadius: WiseRadii.md, style: .continuous))
             }
         }
+    }
+
+    private func selectedRunSummary(_ run: CommandRun?) -> some View {
+        HStack(spacing: 8) {
+            if let run {
+                Text(run.title)
+                    .font(.system(size: 13, weight: .semibold))
+                    .lineLimit(1)
+
+                StatusPill(
+                    text: commandStatusText(for: run),
+                    color: commandStatusColor(for: run)
+                )
+
+                if let pid = run.pid, run.isRunning {
+                    Text("PID \(pid)")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
+                if let exitCode = run.exitCode, !run.isRunning {
+                    Text("Exit \(exitCode)")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            } else {
+                Text("No command selected")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .frame(minHeight: 28)
     }
 
     private func detailsGrid(_ session: ProjectSession) -> some View {
