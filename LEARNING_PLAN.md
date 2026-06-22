@@ -330,6 +330,8 @@ Forms let the user create and edit data. In this app, forms are needed for creat
 - `TextField` = controlled input
 - `$name` binding = `value` plus `onChange`
 - `@Binding` = passing state setter behavior into a child component
+- `Picker` = select/dropdown input
+- Swift enum = TypeScript string union with behavior
 - Sheet = modal
 
 ### Concepts To Learn
@@ -338,7 +340,8 @@ Forms let the user create and edit data. In this app, forms are needed for creat
 - [x] `TextField`
 - [x] `Button`
 - [ ] `Toggle`
-- [ ] `Picker`
+- [x] `Picker`
+- [x] Enum-backed form options
 - [x] Bindings with `$`
 - [x] `@Binding`
 - [x] Sheet presentation
@@ -353,6 +356,7 @@ Forms let the user create and edit data. In this app, forms are needed for creat
 - [x] Persist form changes to `UserDefaults`
 - [x] Cancel editing
 - [x] Reuse one form view for create and edit sheets
+- [x] Replace free-text browser input with a browser picker
 
 ### Example Exercise
 

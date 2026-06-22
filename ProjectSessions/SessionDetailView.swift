@@ -57,7 +57,7 @@ struct SessionDetailView: View {
                     Text("Browser")
                         .font(.headline)
 
-                    Text(session.browser)
+                    Text(session.browser.rawValue)
                         .foregroundStyle(.secondary)
                 }
 
@@ -117,7 +117,7 @@ struct SessionDetailView: View {
         session: ProjectSession(
             id: UUID(),
             name: "Fantasy App",
-            browser: "Chrome",
+            browser: .chrome,
             urls: ["https://github.com", "http://localhost:3000"],
             repositoryPath: "~/Projects/fantasy-app",
             commands: ["pnpm dev", "expo start"]

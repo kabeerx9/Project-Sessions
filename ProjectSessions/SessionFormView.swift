@@ -3,7 +3,7 @@ import SwiftUI
 struct SessionFormView: View {
     let title: String?
     @Binding var name: String
-    @Binding var browser: String
+    @Binding var browser: Browser
     @Binding var repositoryPath: String
     @Binding var urls: [String]
     @Binding var urlDraft: String
@@ -25,7 +25,13 @@ struct SessionFormView: View {
             }
 
             TextField("Session name", text: $name)
-            TextField("Browser", text: $browser)
+
+            Picker("Browser", selection: $browser) {
+                ForEach(Browser.allCases) { browser in
+                    Text(browser.rawValue).tag(browser)
+                }
+            }
+
             TextField("Repository path", text: $repositoryPath)
 
             Button("Choose Folder") {
@@ -106,7 +112,7 @@ struct SessionFormView: View {
     SessionFormView(
         title: "Edit Session",
         name: .constant("Fantasy App"),
-        browser: .constant("Chrome"),
+        browser: .constant(.chrome),
         repositoryPath: .constant("~/Projects/fantasy-app"),
         urls: .constant(["https://github.com", "http://localhost:3000"]),
         urlDraft: .constant(""),

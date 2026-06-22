@@ -17,7 +17,7 @@ struct ContentView: View {
         ProjectSession(
             id : UUID(),
             name: "Fantasy App",
-            browser: "Chrome",
+            browser: .chrome,
             urls: ["https://github.com", "http://localhost:3000"],
             repositoryPath: "~/Projects/fantasy-app",
             commands: ["pnpm dev", "expo start"]
@@ -25,7 +25,7 @@ struct ContentView: View {
         ProjectSession(
             id : UUID(),
             name: "Dashboard",
-            browser: "Chrome",
+            browser: .chrome,
             urls: ["https://figma.com"],
             repositoryPath: "~/Projects/dashboard",
             commands: ["npm run dev"]
@@ -33,7 +33,7 @@ struct ContentView: View {
         ProjectSession(
             id : UUID(),
             name: "SaaS",
-            browser: "Safari",
+            browser: .safari,
             urls: ["https://developer.apple.com"],
             repositoryPath: "~/Projects/saas",
             commands: []
@@ -45,7 +45,7 @@ struct ContentView: View {
 
     
     @State private var newSessionName = ""
-    @State private var newSessionBrowser = "Chrome"
+    @State private var newSessionBrowser = Browser.chrome
     @State private var newSessionRepositoryPath = ""
     @State private var newSessionURLs: [String] = []
     @State private var newSessionURLDraft = ""
@@ -55,7 +55,7 @@ struct ContentView: View {
     
     @State private var editingSession: ProjectSession?
     @State private var editSessionName = ""
-    @State private var editSessionBrowser = "Chrome"
+    @State private var editSessionBrowser = Browser.chrome
     @State private var editSessionRepositoryPath = ""
     @State private var editSessionURLs: [String] = []
     @State private var editSessionURLDraft = ""
@@ -166,7 +166,7 @@ struct ContentView: View {
     
     private func resetNewSessionForm() {
         newSessionName = ""
-        newSessionBrowser = "Chrome"
+        newSessionBrowser = .chrome
         newSessionRepositoryPath = ""
         newSessionURLs = []
         newSessionURLDraft = ""

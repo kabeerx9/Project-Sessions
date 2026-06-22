@@ -3,7 +3,7 @@ import Foundation
 struct ProjectSession: Identifiable, Codable {
     let id: UUID
     var name: String
-    var browser: String
+    var browser: Browser
     var urls: [String]
     var repositoryPath: String
     var commands: [String]
@@ -11,7 +11,7 @@ struct ProjectSession: Identifiable, Codable {
     init(
         id: UUID,
         name: String,
-        browser: String,
+        browser: Browser,
         urls: [String],
         repositoryPath: String,
         commands: [String] = []
@@ -38,7 +38,8 @@ struct ProjectSession: Identifiable, Codable {
 
         id = try container.decode(UUID.self, forKey: .id)
         name = try container.decode(String.self, forKey: .name)
-        browser = try container.decode(String.self, forKey: .browser)
+        let savedBrowser = try container.decode(String.self, forKey: .browser)
+        browser = Browser(rawValue: savedBrowser) ?? .chrome
         urls = try container.decode([String].self, forKey: .urls)
         repositoryPath = try container.decode(String.self, forKey: .repositoryPath)
         commands = try container.decodeIfPresent([String].self, forKey: .commands) ?? []

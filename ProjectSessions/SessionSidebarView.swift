@@ -43,7 +43,7 @@ struct SessionSidebarView: View {
                             Text(session.name)
                                 .font(.headline)
 
-                            Text("\(session.browser) · \(session.urls.count) URLs")
+                            Text("\(session.browser.rawValue) · \(session.urls.count) URLs")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                         }
@@ -64,7 +64,7 @@ struct SessionSidebarView: View {
             ProjectSession(
                 id: UUID(),
                 name: "Fantasy App",
-                browser: "Chrome",
+                browser: .chrome,
                 urls: ["https://github.com", "http://localhost:3000"],
                 repositoryPath: "~/Projects/fantasy-app",
                 commands: ["pnpm dev", "expo start"]
