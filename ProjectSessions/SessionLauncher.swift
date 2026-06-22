@@ -173,6 +173,7 @@ enum SessionLauncher {
 
         if let error {
             print("Could not run Terminal command \(plan.title): \(error)")
+            showTerminalAutomationPermissionAlertIfNeeded(error)
         } else {
             print("Opening Terminal command: \(plan.title)")
         }
@@ -201,5 +202,31 @@ enum SessionLauncher {
         value
             .replacingOccurrences(of: "\\", with: "\\\\")
             .replacingOccurrences(of: "\"", with: "\\\"")
+    }
+
+    private static func showTerminalAutomationPermissionAlertIfNeeded(_ error: NSDictionary) {
+        let errorNumber = error[NSAppleScript.errorNumber] as? Int
+
+        guard errorNumber == -1743 else {
+            return
+        }
+
+        let alert = NSAlert()
+        alert.messageText = "Terminal Permission Needed"
+        alert.informativeText = """
+        Project Sessions needs permission to control Terminal so it can run saved project commands.
+
+        Open System Settings > Privacy & Security > Automation, then enable Terminal under ProjectSessions.
+        """
+        alert.alertStyle = .warning
+        alert.addButton(withTitle: "Open System Settings")
+        alert.addButton(withTitle: "OK")
+
+        let response = alert.runModal()
+
+        if response == .alertFirstButtonReturn,
+           let settingsURL = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Automation") {
+            NSWorkspace.shared.open(settingsURL)
+        }
     }
 }
