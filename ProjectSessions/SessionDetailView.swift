@@ -7,7 +7,7 @@ struct SessionDetailView: View {
     let onOpenFolder: @MainActor (ProjectSession) -> Void
     let onOpenInCursor: @MainActor (ProjectSession) -> Void
     let onOpenInGhostty: @MainActor (ProjectSession) -> Void
-    let onRunCommandsInGhostty: @MainActor (ProjectSession) -> Void
+    let onRunCommandsInTerminal: @MainActor (ProjectSession) -> Void
     let onCopyCommands: @MainActor (ProjectSession) -> Void
     let onCopyRepositoryPathAndCommands: @MainActor (ProjectSession) -> Void
     let onCopyShellChain: @MainActor (ProjectSession) -> Void
@@ -53,8 +53,8 @@ struct SessionDetailView: View {
                     }
                     .disabled(session.repositoryPath.isEmpty)
 
-                    Button("Run Commands") {
-                        onRunCommandsInGhostty(session)
+                    Button("Run Commands in Terminal") {
+                        onRunCommandsInTerminal(session)
                     }
                     .disabled(session.repositoryPath.isEmpty || session.commands.isEmpty)
 
@@ -97,7 +97,7 @@ struct SessionDetailView: View {
                     Text("\(session.urls.count) URLs")
                     Text("\(session.commands.count) commands")
                     Text("Browser: \(session.browser.rawValue)")
-                    Text("Terminal: Ghostty")
+                    Text("Command runner: Terminal")
                 }
                 .font(.caption)
                 .foregroundStyle(.secondary)
@@ -201,7 +201,7 @@ struct SessionDetailView: View {
         onOpenFolder: { _ in },
         onOpenInCursor: { _ in },
         onOpenInGhostty: { _ in },
-        onRunCommandsInGhostty: { _ in },
+        onRunCommandsInTerminal: { _ in },
         onCopyCommands: { _ in },
         onCopyRepositoryPathAndCommands: { _ in },
         onCopyShellChain: { _ in },

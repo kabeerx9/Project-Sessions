@@ -9,7 +9,7 @@ enum SessionLauncher {
         if session.commands.isEmpty {
             openRepositoryInGhostty(session)
         } else {
-            runCommandsInGhostty(for: session)
+            runCommandsInTerminal(for: session)
         }
     }
 
@@ -96,17 +96,11 @@ enum SessionLauncher {
         }
     }
 
-    static func runCommandsInGhostty(for session: ProjectSession) {
+    static func runCommandsInTerminal(for session: ProjectSession) {
         let expandedRepositoryPath = expandedPath(session.repositoryPath)
 
         guard FileManager.default.fileExists(atPath: expandedRepositoryPath) else {
             print("Repository path does not exist: \(expandedRepositoryPath)")
-            return
-        }
-
-        guard canOpenGhostty() else {
-            print("Could not find Ghostty.app. Opening the project folder in Finder instead.")
-            openRepositoryInFinder(session)
             return
         }
 
@@ -121,7 +115,7 @@ enum SessionLauncher {
             let delay = Double(index) * 0.5
 
             DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
-                launchGhosttyCommand(
+                launchTerminalCommand(
                     workingDirectory: expandedRepositoryPath,
                     plan: plan
                 )
@@ -156,38 +150,31 @@ enum SessionLauncher {
         return URL(string: "https://\(trimmedURLString)")
     }
 
-    private static func launchGhosttyCommand(
+    private static func launchTerminalCommand(
         workingDirectory: String,
         plan: TerminalLaunchPlan
     ) {
-        let process = Process()
-        process.executableURL = URL(fileURLWithPath: "/usr/bin/open")
-        process.arguments = [
-            "-na",
-            "Ghostty.app",
-            "--args",
-            "--working-directory=\(workingDirectory)",
-            "--window-save-state=never",
-            "--command=shell:\(plan.shellCommand); printf '\\n'; exec /bin/zsh -l"
-        ]
+        let shellCommand = "cd \(shellQuoted(workingDirectory)) && \(plan.shellCommand)"
+        let script = """
+        tell application "Terminal"
+            activate
+            do script "\(appleScriptEscaped(shellCommand))"
+        end tell
+        """
 
-        do {
-            print("Opening Ghostty command: \(plan.title)")
-            try process.run()
-        } catch {
-            print("Could not run Ghostty command \(plan.title): \(error)")
+        var error: NSDictionary?
+
+        guard let appleScript = NSAppleScript(source: script) else {
+            print("Could not create Terminal AppleScript for command: \(plan.title)")
+            return
         }
-    }
 
-    private static func canOpenGhostty() -> Bool {
-        let homeDirectory = FileManager.default.homeDirectoryForCurrentUser.path
-        let candidatePaths = [
-            "/Applications/Ghostty.app",
-            "\(homeDirectory)/Applications/Ghostty.app"
-        ]
+        appleScript.executeAndReturnError(&error)
 
-        return candidatePaths.contains {
-            FileManager.default.fileExists(atPath: $0)
+        if let error {
+            print("Could not run Terminal command \(plan.title): \(error)")
+        } else {
+            print("Opening Terminal command: \(plan.title)")
         }
     }
 
@@ -204,5 +191,15 @@ enum SessionLauncher {
         }
 
         return "\(homeDirectory)/\(trimmedPath)"
+    }
+
+    private static func shellQuoted(_ value: String) -> String {
+        "'\(value.replacingOccurrences(of: "'", with: "'\\''"))'"
+    }
+
+    private static func appleScriptEscaped(_ value: String) -> String {
+        value
+            .replacingOccurrences(of: "\\", with: "\\\\")
+            .replacingOccurrences(of: "\"", with: "\\\"")
     }
 }

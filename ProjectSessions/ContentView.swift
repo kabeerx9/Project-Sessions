@@ -139,8 +139,8 @@ struct ContentView: View {
                 onOpenInGhostty: { session in
                     SessionLauncher.openRepositoryInGhostty(session)
                 },
-                onRunCommandsInGhostty: { session in
-                    SessionLauncher.runCommandsInGhostty(for: session)
+                onRunCommandsInTerminal: { session in
+                    SessionLauncher.runCommandsInTerminal(for: session)
                 },
                 onCopyCommands: { session in
                     CommandClipboard.copyCommands(for: session)

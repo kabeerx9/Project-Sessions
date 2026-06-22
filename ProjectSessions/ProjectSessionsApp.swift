@@ -41,8 +41,8 @@ struct ProjectSessionsApp: App {
                         }
                         .disabled(session.repositoryPath.isEmpty)
 
-                        Button("Run Commands") {
-                            SessionLauncher.runCommandsInGhostty(for: session)
+                        Button("Run Commands in Terminal") {
+                            SessionLauncher.runCommandsInTerminal(for: session)
                         }
                         .disabled(session.repositoryPath.isEmpty || session.commands.isEmpty)
 
