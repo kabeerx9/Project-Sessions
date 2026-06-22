@@ -40,6 +40,16 @@ struct ProjectSessionsApp: App {
                             CommandClipboard.copyCommands(for: session)
                         }
                         .disabled(session.commands.isEmpty)
+
+                        Button("Copy cd + Commands") {
+                            CommandClipboard.copyRepositoryPathAndCommands(for: session)
+                        }
+                        .disabled(session.commands.isEmpty || session.repositoryPath.isEmpty)
+
+                        Button("Copy Shell Chain") {
+                            CommandClipboard.copyShellChain(for: session)
+                        }
+                        .disabled(session.commands.isEmpty || session.repositoryPath.isEmpty)
                     }
                 }
             }

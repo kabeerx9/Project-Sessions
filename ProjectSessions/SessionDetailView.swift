@@ -7,6 +7,8 @@ struct SessionDetailView: View {
     let onOpenFolder: (ProjectSession) -> Void
     let onOpenInCursor: (ProjectSession) -> Void
     let onCopyCommands: (ProjectSession) -> Void
+    let onCopyRepositoryPathAndCommands: (ProjectSession) -> Void
+    let onCopyShellChain: (ProjectSession) -> Void
     let onEdit: (ProjectSession) -> Void
     let onDelete: (ProjectSession) -> Void
 
@@ -47,6 +49,16 @@ struct SessionDetailView: View {
                         onCopyCommands(session)
                     }
                     .disabled(session.commands.isEmpty)
+
+                    Button("Copy cd + Commands") {
+                        onCopyRepositoryPathAndCommands(session)
+                    }
+                    .disabled(session.commands.isEmpty || session.repositoryPath.isEmpty)
+
+                    Button("Copy Shell Chain") {
+                        onCopyShellChain(session)
+                    }
+                    .disabled(session.commands.isEmpty || session.repositoryPath.isEmpty)
 
                     Button("Edit") {
                         onEdit(session)
@@ -133,6 +145,8 @@ struct SessionDetailView: View {
         onOpenFolder: { _ in },
         onOpenInCursor: { _ in },
         onCopyCommands: { _ in },
+        onCopyRepositoryPathAndCommands: { _ in },
+        onCopyShellChain: { _ in },
         onEdit: { _ in },
         onDelete: { _ in }
     )

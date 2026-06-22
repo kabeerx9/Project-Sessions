@@ -121,6 +121,8 @@ struct ContentView: View {
                 onOpenFolder: SessionLauncher.openRepositoryInFinder,
                 onOpenInCursor: SessionLauncher.openRepositoryInCursor,
                 onCopyCommands: CommandClipboard.copyCommands,
+                onCopyRepositoryPathAndCommands: CommandClipboard.copyRepositoryPathAndCommands,
+                onCopyShellChain: CommandClipboard.copyShellChain,
                 onEdit: startEditing,
                 onDelete: { session in
                     sessionsToDelete = [session]

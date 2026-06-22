@@ -472,6 +472,7 @@ The Process API is for starting and controlling command-line programs. It should
 - [ ] Explore how a command could be launched
 - [x] Store terminal commands without running them
 - [x] Copy saved commands to the clipboard
+- [x] Copy commands as a single shell chain with `&&`
 - [x] Defer automatic terminal command execution until after the MVP
 - [ ] Decide whether terminal control belongs in the app
 
@@ -571,8 +572,8 @@ These should wait until the MVP is complete.
 - [ ] Browser profile support
 - [ ] Open multiple browser tabs
 - [ ] Open Cursor workspace
-- [ ] Open Ghostty windows
-- [ ] Run terminal commands
+- [ ] Open multiple Ghostty tabs or windows
+- [ ] Run terminal commands in separate tabs for long-running dev servers
 
 ### Session Health
 
