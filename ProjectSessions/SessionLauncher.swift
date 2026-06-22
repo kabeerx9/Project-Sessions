@@ -4,6 +4,14 @@ import Foundation
 enum SessionLauncher {
     static func restore(_ session: ProjectSession) {
         launchURLs(for: session)
+
+        let expandedRepositoryPath = expandedPath(session.repositoryPath)
+
+        guard repositoryPathExists(expandedRepositoryPath) else {
+            showRepositoryPathAlert(expandedRepositoryPath)
+            return
+        }
+
         openRepositoryInCursor(session)
 
         if !session.commands.isEmpty {
@@ -13,13 +21,33 @@ enum SessionLauncher {
 
     static func launchURLs(for session: ProjectSession) {
         var urlsToOpen: [URL] = []
+        var invalidURLs: [String] = []
 
         for urlString in session.urls {
             if let url = normalizedWebURL(from: urlString) {
                 urlsToOpen.append(url)
             } else {
-                print("Skipping invalid URL: \(urlString)")
+                invalidURLs.append(urlString)
             }
+        }
+
+        if !invalidURLs.isEmpty {
+            showLaunchAlert(
+                title: "Some URLs Could Not Open",
+                message: invalidURLs.joined(separator: "\n")
+            )
+        }
+
+        guard !urlsToOpen.isEmpty else {
+            return
+        }
+
+        guard browserIsInstalled(session.browser) else {
+            showLaunchAlert(
+                title: "\(session.browser.rawValue) Is Not Installed",
+                message: "Install \(session.browser.rawValue), or choose a different browser for this session."
+            )
+            return
         }
 
         for (index, url) in urlsToOpen.enumerated() {
@@ -36,8 +64,8 @@ enum SessionLauncher {
         let expandedRepositoryPath = expandedPath(session.repositoryPath)
         let repositoryURL = URL(fileURLWithPath: expandedRepositoryPath)
 
-        guard FileManager.default.fileExists(atPath: expandedRepositoryPath) else {
-            print("Repository path does not exist: \(expandedRepositoryPath)")
+        guard repositoryPathExists(expandedRepositoryPath) else {
+            showRepositoryPathAlert(expandedRepositoryPath)
             return
         }
 
@@ -46,15 +74,18 @@ enum SessionLauncher {
         let didOpen = NSWorkspace.shared.open(repositoryURL)
 
         if !didOpen {
-            print("Could not open repository folder: \(expandedRepositoryPath)")
+            showLaunchAlert(
+                title: "Could Not Open Folder",
+                message: expandedRepositoryPath
+            )
         }
     }
 
     static func openRepositoryInCursor(_ session: ProjectSession) {
         let expandedRepositoryPath = expandedPath(session.repositoryPath)
 
-        guard FileManager.default.fileExists(atPath: expandedRepositoryPath) else {
-            print("Repository path does not exist: \(expandedRepositoryPath)")
+        guard repositoryPathExists(expandedRepositoryPath) else {
+            showRepositoryPathAlert(expandedRepositoryPath)
             return
         }
 
@@ -64,16 +95,27 @@ enum SessionLauncher {
 
         do {
             try process.run()
+            process.waitUntilExit()
+
+            if process.terminationStatus != 0 {
+                showLaunchAlert(
+                    title: "Could Not Open Cursor",
+                    message: "Make sure Cursor is installed, then try again."
+                )
+            }
         } catch {
-            print("Could not open repository in Cursor: \(error)")
+            showLaunchAlert(
+                title: "Could Not Open Cursor",
+                message: error.localizedDescription
+            )
         }
     }
 
     static func runCommandsInTerminal(for session: ProjectSession) {
         let expandedRepositoryPath = expandedPath(session.repositoryPath)
 
-        guard FileManager.default.fileExists(atPath: expandedRepositoryPath) else {
-            print("Repository path does not exist: \(expandedRepositoryPath)")
+        guard repositoryPathExists(expandedRepositoryPath) else {
+            showRepositoryPathAlert(expandedRepositoryPath)
             return
         }
 
@@ -105,10 +147,27 @@ enum SessionLauncher {
 
         do {
             try process.run()
+            process.waitUntilExit()
+
+            if process.terminationStatus != 0 {
+                NSWorkspace.shared.open(url)
+            }
         } catch {
-            print("Could not open URL in \(browser.appName): \(url.absoluteString), error: \(error)")
             NSWorkspace.shared.open(url)
         }
+    }
+
+    private static func browserIsInstalled(_ browser: Browser) -> Bool {
+        NSWorkspace.shared.urlForApplication(withBundleIdentifier: browser.bundleIdentifier) != nil
+    }
+
+    private static func repositoryPathExists(_ path: String) -> Bool {
+        var isDirectory: ObjCBool = false
+
+        return FileManager.default.fileExists(
+            atPath: path,
+            isDirectory: &isDirectory
+        ) && isDirectory.boolValue
     }
 
     private static func normalizedWebURL(from urlString: String) -> URL? {
@@ -190,6 +249,24 @@ enum SessionLauncher {
         }
 
         return "\(homeDirectory)/\(trimmedPath)"
+    }
+
+    private static func showRepositoryPathAlert(_ path: String) {
+        showLaunchAlert(
+            title: "Repository Folder Not Found",
+            message: path
+        )
+    }
+
+    private static func showLaunchAlert(title: String, message: String) {
+        DispatchQueue.main.async {
+            let alert = NSAlert()
+            alert.messageText = title
+            alert.informativeText = message
+            alert.alertStyle = .warning
+            alert.addButton(withTitle: "OK")
+            alert.runModal()
+        }
     }
 
     private static func shellQuoted(_ value: String) -> String {

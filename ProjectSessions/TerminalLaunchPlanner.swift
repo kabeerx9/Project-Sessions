@@ -28,7 +28,7 @@ enum TerminalLaunchPlanner {
         }
 
         for command in session.commands {
-            if command.runsInSeparateTab {
+            if command.runsInSeparateTerminal {
                 flushCommandGroup()
                 plans.append(
                     TerminalLaunchPlan(

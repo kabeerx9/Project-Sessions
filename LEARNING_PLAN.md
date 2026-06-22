@@ -27,6 +27,9 @@ The first version should support:
 - [x] Open the repository in Cursor
 - [x] Open the repository in a terminal app
 - [x] Run saved terminal commands
+- [x] Restore browser URLs, Cursor, and terminal commands from one action
+- [x] Validate required form fields
+- [x] Show native failure alerts for missing folders, missing apps, and blocked automation
 - [x] Persist sessions locally
 
 Out of scope for MVP:
@@ -343,7 +346,7 @@ Forms let the user create and edit data. In this app, forms are needed for creat
 - [x] `Form`
 - [x] `TextField`
 - [x] `Button`
-- [ ] `Toggle`
+- [x] `Toggle`
 - [x] `Picker`
 - [x] Enum-backed form options
 - [x] Bindings with `$`
@@ -361,6 +364,9 @@ Forms let the user create and edit data. In this app, forms are needed for creat
 - [x] Cancel editing
 - [x] Reuse one form view for create and edit sheets
 - [x] Replace free-text browser input with a browser picker
+- [x] Validate required fields before saving
+- [x] Trim text input before saving
+- [x] Prevent empty URLs and commands
 
 ### Example Exercise
 
@@ -430,8 +436,8 @@ macOS apps can open URLs, files, folders, and other apps. This is where Project 
 - [x] Opening local folders
 - [x] Launching apps
 - [x] Basic error handling
-- [ ] App bundle identifiers
-- [ ] File paths and `URL(fileURLWithPath:)`
+- [x] App bundle identifiers
+- [x] File paths and `URL(fileURLWithPath:)`
 
 ### Project Implementation
 
@@ -472,7 +478,7 @@ The Process API is for starting and controlling command-line programs. It should
 - [x] Knowing when not to run shell commands from the app
 - [x] Modeling terminal commands as structs
 - [x] Add command display names
-- [x] Add separate-tab intent for future terminal restore
+- [x] Add separate-terminal intent for future terminal restore
 
 ### Project Implementation
 
@@ -514,8 +520,9 @@ Project Sessions needs terminal automation because a session is not only a folde
 - [x] Run saved commands from the session repository path
 - [x] Keep the terminal open after commands finish
 - [x] Avoid opening an extra empty Terminal window when Terminal is closed
-- [ ] Add per-command run buttons
-- [ ] Improve grouped vs separate command behavior
+- [x] Support grouped commands with `&&`
+- [x] Support separate Terminal windows for commands marked as separate
+- [ ] Add per-command run buttons later if they become useful
 - [ ] Consider iTerm2 or another terminal adapter later
 
 ### Current MVP Decision

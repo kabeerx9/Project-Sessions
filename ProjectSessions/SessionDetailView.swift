@@ -160,8 +160,8 @@ struct SessionDetailView: View {
                                     .font(.caption)
                                     .foregroundStyle(.secondary)
 
-                                if command.runsInSeparateTab {
-                                    Text("Separate terminal tab later")
+                                if command.runsInSeparateTerminal {
+                                    Text("Separate terminal")
                                         .font(.caption)
                                         .foregroundStyle(.secondary)
                                 }

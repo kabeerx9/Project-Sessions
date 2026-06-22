@@ -19,4 +19,15 @@ enum Browser: String, Codable, CaseIterable, Identifiable {
             "Brave Browser"
         }
     }
+
+    var bundleIdentifier: String {
+        switch self {
+        case .chrome:
+            "com.google.Chrome"
+        case .safari:
+            "com.apple.Safari"
+        case .brave:
+            "com.brave.Browser"
+        }
+    }
 }

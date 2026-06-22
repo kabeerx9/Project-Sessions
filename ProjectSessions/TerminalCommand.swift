@@ -4,24 +4,25 @@ struct TerminalCommand: Identifiable, Codable, Hashable {
     let id: UUID
     var name: String
     var command: String
-    var runsInSeparateTab: Bool
+    var runsInSeparateTerminal: Bool
 
     init(
         id: UUID = UUID(),
         name: String = "",
         command: String,
-        runsInSeparateTab: Bool = true
+        runsInSeparateTerminal: Bool = true
     ) {
         self.id = id
         self.name = name
         self.command = command
-        self.runsInSeparateTab = runsInSeparateTab
+        self.runsInSeparateTerminal = runsInSeparateTerminal
     }
 
     enum CodingKeys: String, CodingKey {
         case id
         case name
         case command
+        case runsInSeparateTerminal
         case runsInSeparateTab
     }
 
@@ -31,7 +32,7 @@ struct TerminalCommand: Identifiable, Codable, Hashable {
             id = UUID()
             name = ""
             command = savedCommand
-            runsInSeparateTab = true
+            runsInSeparateTerminal = true
             return
         }
 
@@ -40,6 +41,17 @@ struct TerminalCommand: Identifiable, Codable, Hashable {
         id = try container.decodeIfPresent(UUID.self, forKey: .id) ?? UUID()
         name = try container.decodeIfPresent(String.self, forKey: .name) ?? ""
         command = try container.decode(String.self, forKey: .command)
-        runsInSeparateTab = try container.decodeIfPresent(Bool.self, forKey: .runsInSeparateTab) ?? true
+        runsInSeparateTerminal = try container.decodeIfPresent(Bool.self, forKey: .runsInSeparateTerminal)
+            ?? container.decodeIfPresent(Bool.self, forKey: .runsInSeparateTab)
+            ?? true
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+
+        try container.encode(id, forKey: .id)
+        try container.encode(name, forKey: .name)
+        try container.encode(command, forKey: .command)
+        try container.encode(runsInSeparateTerminal, forKey: .runsInSeparateTerminal)
     }
 }

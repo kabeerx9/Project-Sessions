@@ -10,13 +10,29 @@ struct SessionFormView: View {
     @Binding var commands: [TerminalCommand]
     @Binding var commandNameDraft: String
     @Binding var commandDraft: String
-    @Binding var commandRunsInSeparateTab: Bool
+    @Binding var commandRunsInSeparateTerminal: Bool
     let onChooseFolder: () -> Void
     let onCancel: () -> Void
     let onSave: () -> Void
 
     private var canSave: Bool {
-        !name.isEmpty && !repositoryPath.isEmpty
+        validationMessage == nil
+    }
+
+    private var validationMessage: String? {
+        if trimmedName.isEmpty {
+            return "Add a session name."
+        }
+
+        if trimmedRepositoryPath.isEmpty {
+            return "Add a repository path."
+        }
+
+        if !repositoryPathExists {
+            return "Choose an existing repository folder."
+        }
+
+        return nil
     }
 
     var body: some View {
@@ -45,7 +61,7 @@ struct SessionFormView: View {
             Button("Add URL") {
                 addURL()
             }
-            .disabled(urlDraft.isEmpty)
+            .disabled(trimmedURLDraft.isEmpty)
 
             ForEach(urls, id: \.self) { url in
                 HStack {
@@ -59,12 +75,12 @@ struct SessionFormView: View {
 
             TextField("Command name", text: $commandNameDraft)
             TextField("Command", text: $commandDraft)
-            Toggle("Run in separate tab later", isOn: $commandRunsInSeparateTab)
+            Toggle("Run in separate terminal", isOn: $commandRunsInSeparateTerminal)
 
             Button("Add Command") {
                 addCommand()
             }
-            .disabled(commandDraft.isEmpty)
+            .disabled(trimmedCommandDraft.isEmpty)
 
             ForEach(commands) { command in
                 HStack {
@@ -77,8 +93,8 @@ struct SessionFormView: View {
 
                     Spacer()
 
-                    if command.runsInSeparateTab {
-                        Text("Separate tab")
+                    if command.runsInSeparateTerminal {
+                        Text("Separate terminal")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
@@ -97,9 +113,15 @@ struct SessionFormView: View {
                 Spacer()
 
                 Button("Save") {
-                    onSave()
+                    saveForm()
                 }
                 .disabled(!canSave)
+            }
+
+            if let validationMessage {
+                Text(validationMessage)
+                    .font(.caption)
+                    .foregroundStyle(.red)
             }
         }
         .padding()
@@ -107,29 +129,105 @@ struct SessionFormView: View {
     }
 
     private func addURL() {
-        guard !urlDraft.isEmpty else {
+        guard !trimmedURLDraft.isEmpty else {
             return
         }
 
-        urls.append(urlDraft)
+        if !urls.contains(trimmedURLDraft) {
+            urls.append(trimmedURLDraft)
+        }
+
         urlDraft = ""
     }
 
     private func addCommand() {
-        guard !commandDraft.isEmpty else {
+        guard !trimmedCommandDraft.isEmpty else {
             return
         }
 
         commands.append(
             TerminalCommand(
-                name: commandNameDraft,
-                command: commandDraft,
-                runsInSeparateTab: commandRunsInSeparateTab
+                name: trimmedCommandNameDraft,
+                command: trimmedCommandDraft,
+                runsInSeparateTerminal: commandRunsInSeparateTerminal
             )
         )
         commandNameDraft = ""
         commandDraft = ""
-        commandRunsInSeparateTab = true
+        commandRunsInSeparateTerminal = true
+    }
+
+    private func saveForm() {
+        guard canSave else {
+            return
+        }
+
+        name = trimmedName
+        repositoryPath = trimmedRepositoryPath
+        urls = urls
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+
+        commands = commands.compactMap { command in
+            let trimmedName = command.name.trimmingCharacters(in: .whitespacesAndNewlines)
+            let trimmedCommand = command.command.trimmingCharacters(in: .whitespacesAndNewlines)
+
+            guard !trimmedCommand.isEmpty else {
+                return nil
+            }
+
+            return TerminalCommand(
+                id: command.id,
+                name: trimmedName,
+                command: trimmedCommand,
+                runsInSeparateTerminal: command.runsInSeparateTerminal
+            )
+        }
+
+        onSave()
+    }
+
+    private var trimmedName: String {
+        name.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private var trimmedRepositoryPath: String {
+        repositoryPath.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private var trimmedURLDraft: String {
+        urlDraft.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private var trimmedCommandNameDraft: String {
+        commandNameDraft.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private var trimmedCommandDraft: String {
+        commandDraft.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private var repositoryPathExists: Bool {
+        var isDirectory: ObjCBool = false
+
+        return FileManager.default.fileExists(
+            atPath: expandedRepositoryPath,
+            isDirectory: &isDirectory
+        ) && isDirectory.boolValue
+    }
+
+    private var expandedRepositoryPath: String {
+        let homeDirectory = FileManager.default.homeDirectoryForCurrentUser.path
+
+        if trimmedRepositoryPath.hasPrefix("~/") {
+            return homeDirectory + trimmedRepositoryPath.dropFirst()
+        }
+
+        if trimmedRepositoryPath.hasPrefix("/") {
+            return trimmedRepositoryPath
+        }
+
+        return "\(homeDirectory)/\(trimmedRepositoryPath)"
     }
 }
 
@@ -147,7 +245,7 @@ struct SessionFormView: View {
         ]),
         commandNameDraft: .constant(""),
         commandDraft: .constant(""),
-        commandRunsInSeparateTab: .constant(true),
+        commandRunsInSeparateTerminal: .constant(true),
         onChooseFolder: {},
         onCancel: {},
         onSave: {}

@@ -11,8 +11,8 @@ class SessionStore {
             urls: ["https://github.com", "http://localhost:3000"],
             repositoryPath: "~/Desktop/projects/ProjectSessions",
             commands: [
-                TerminalCommand(name: "Current user", command: "whoami", runsInSeparateTab: false),
-                TerminalCommand(name: "Git user", command: "git config user.name", runsInSeparateTab: false)
+                TerminalCommand(name: "Current user", command: "whoami", runsInSeparateTerminal: false),
+                TerminalCommand(name: "Git user", command: "git config user.name", runsInSeparateTerminal: false)
             ]
         ),
         ProjectSession(
@@ -21,7 +21,7 @@ class SessionStore {
             browser: .chrome,
             urls: ["https://figma.com"],
             repositoryPath: "~/Projects/dashboard",
-            commands: [TerminalCommand(name: "Current user", command: "whoami", runsInSeparateTab: false)]
+            commands: [TerminalCommand(name: "Current user", command: "whoami", runsInSeparateTerminal: false)]
         ),
         ProjectSession(
             id: UUID(),

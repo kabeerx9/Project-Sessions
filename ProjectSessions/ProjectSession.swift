@@ -43,9 +43,9 @@ struct ProjectSession: Identifiable, Codable {
         urls = try container.decode([String].self, forKey: .urls)
         repositoryPath = try container.decode(String.self, forKey: .repositoryPath)
         
-        if let savedCommands = try? container.decodeIfPresent([TerminalCommand].self, forKey: .commands) {
-            commands = savedCommands ?? []
-        } else {
+        do {
+            commands = try container.decodeIfPresent([TerminalCommand].self, forKey: .commands) ?? []
+        } catch {
             let oldCommandStrings = try container.decodeIfPresent([String].self, forKey: .commands) ?? []
             commands = oldCommandStrings.map { TerminalCommand(command: $0) }
         }

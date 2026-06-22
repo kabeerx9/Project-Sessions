@@ -22,7 +22,7 @@ struct ContentView: View {
     @State private var newSessionCommands: [TerminalCommand] = []
     @State private var newSessionCommandNameDraft = ""
     @State private var newSessionCommandDraft = ""
-    @State private var newSessionCommandRunsInSeparateTab = true
+    @State private var newSessionCommandRunsInSeparateTerminal = true
     
     
     @State private var editingSession: ProjectSession?
@@ -34,7 +34,7 @@ struct ContentView: View {
     @State private var editSessionCommands: [TerminalCommand] = []
     @State private var editSessionCommandNameDraft = ""
     @State private var editSessionCommandDraft = ""
-    @State private var editSessionCommandRunsInSeparateTab = true
+    @State private var editSessionCommandRunsInSeparateTerminal = true
     
     @State private var sessionsToDelete: [ProjectSession] = []
 
@@ -72,7 +72,7 @@ struct ContentView: View {
         newSessionCommands = []
         newSessionCommandNameDraft = ""
         newSessionCommandDraft = ""
-        newSessionCommandRunsInSeparateTab = true
+        newSessionCommandRunsInSeparateTerminal = true
     }
 
     private func startEditing(_ session: ProjectSession) {
@@ -85,7 +85,7 @@ struct ContentView: View {
         editSessionCommands = session.commands
         editSessionCommandNameDraft = ""
         editSessionCommandDraft = ""
-        editSessionCommandRunsInSeparateTab = true
+        editSessionCommandRunsInSeparateTerminal = true
     }
 
     private func chooseRepositoryPathForEditSession() {
@@ -173,7 +173,7 @@ struct ContentView: View {
                 commands: $newSessionCommands,
                 commandNameDraft: $newSessionCommandNameDraft,
                 commandDraft: $newSessionCommandDraft,
-                commandRunsInSeparateTab: $newSessionCommandRunsInSeparateTab,
+                commandRunsInSeparateTerminal: $newSessionCommandRunsInSeparateTerminal,
                 onChooseFolder: {
                     chooseRepositoryPathForNewSession()
                 },
@@ -209,7 +209,7 @@ struct ContentView: View {
                 commands: $editSessionCommands,
                 commandNameDraft: $editSessionCommandNameDraft,
                 commandDraft: $editSessionCommandDraft,
-                commandRunsInSeparateTab: $editSessionCommandRunsInSeparateTab,
+                commandRunsInSeparateTerminal: $editSessionCommandRunsInSeparateTerminal,
                 onChooseFolder: {
                     chooseRepositoryPathForEditSession()
                 },
