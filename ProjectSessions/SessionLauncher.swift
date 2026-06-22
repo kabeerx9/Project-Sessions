@@ -281,6 +281,7 @@ enum SessionLauncher {
                     set projectSessionsTab to selected tab of front window
                 end if
                 set custom title of projectSessionsTab to "\(appleScriptEscaped(record.terminalTabTitle))"
+                return id of front window
             end tell
             """
         } else {
@@ -289,6 +290,7 @@ enum SessionLauncher {
                 set projectSessionsTab to do script "\(appleScriptEscaped(shellCommand))"
                 set custom title of projectSessionsTab to "\(appleScriptEscaped(record.terminalTabTitle))"
                 activate
+                return id of front window
             end tell
             """
         }
@@ -300,13 +302,20 @@ enum SessionLauncher {
             return
         }
 
-        appleScript.executeAndReturnError(&error)
+        let result = appleScript.executeAndReturnError(&error)
 
         if let error {
             print("Could not run Terminal command \(record.title): \(error)")
             showTerminalAutomationPermissionAlertIfNeeded(error)
         } else {
             print("Opening Terminal command: \(record.title)")
+
+            if result.int32Value != 0 {
+                terminalProcessStore.updateTerminalWindowID(
+                    for: record.id,
+                    windowID: Int(result.int32Value)
+                )
+            }
 
             DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
                 terminalProcessStore.refresh()
@@ -332,6 +341,7 @@ enum SessionLauncher {
             command: plan.shellCommand,
             workingDirectory: workingDirectory,
             terminalTabTitle: terminalTabTitle(sessionName: session.name, commandTitle: plan.title, id: id),
+            terminalWindowID: nil,
             pidFilePath: pidFileURL.path,
             exitFilePath: exitFileURL.path,
             pid: nil,
@@ -384,17 +394,42 @@ enum SessionLauncher {
         let tabTitles = terminalProcessStore
             .records(for: session)
             .map(\.terminalTabTitle)
+        let windowIDs = terminalProcessStore
+            .records(for: session)
+            .compactMap(\.terminalWindowID)
 
-        guard !tabTitles.isEmpty else {
+        guard !tabTitles.isEmpty || !windowIDs.isEmpty else {
             return
         }
 
-        let titleChecks = tabTitles
-            .map { "tabTitle is \"\(appleScriptEscaped($0))\"" }
-            .joined(separator: " or ")
+        let windowIDChecks = windowIDs.isEmpty
+            ? "false"
+            : windowIDs
+                .map { "windowID is \($0)" }
+                .joined(separator: " or ")
+
+        let titleChecks = tabTitles.isEmpty
+            ? "false"
+            : tabTitles
+                .map { "tabTitle is \"\(appleScriptEscaped($0))\"" }
+                .joined(separator: " or ")
 
         let script = """
         tell application "Terminal"
+            set windowsToClose to {}
+
+            repeat with terminalWindow in windows
+                set windowID to id of terminalWindow
+
+                if \(windowIDChecks) then
+                    set end of windowsToClose to terminalWindow
+                end if
+            end repeat
+
+            repeat with terminalWindow in windowsToClose
+                close terminalWindow
+            end repeat
+
             repeat with terminalWindow in windows
                 set matchingTabs to {}
 

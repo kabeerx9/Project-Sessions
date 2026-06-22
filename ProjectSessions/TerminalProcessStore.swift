@@ -5,7 +5,7 @@ import Observation
 class TerminalProcessStore {
     private(set) var records: [TerminalProcessRecord] = []
 
-    private let recordsKey = "terminalProcessRecords.v2"
+    private let recordsKey = "terminalProcessRecords.v3"
 
     init() {
         loadRecords()
@@ -22,6 +22,15 @@ class TerminalProcessStore {
 
     func track(_ record: TerminalProcessRecord) {
         records.append(record)
+        saveRecords()
+    }
+
+    func updateTerminalWindowID(for recordID: TerminalProcessRecord.ID, windowID: Int) {
+        guard let index = records.firstIndex(where: { $0.id == recordID }) else {
+            return
+        }
+
+        records[index].terminalWindowID = windowID
         saveRecords()
     }
 
