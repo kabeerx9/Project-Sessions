@@ -111,13 +111,16 @@ enum SessionLauncher {
             return
         }
 
+        let terminalWasRunning = isTerminalRunning()
+
         for (index, plan) in plans.enumerated() {
             let delay = Double(index) * 0.5
 
             DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
                 launchTerminalCommand(
                     workingDirectory: expandedRepositoryPath,
-                    plan: plan
+                    plan: plan,
+                    reuseFrontWindowIfAvailable: !terminalWasRunning && index == 0
                 )
             }
         }
@@ -152,15 +155,32 @@ enum SessionLauncher {
 
     private static func launchTerminalCommand(
         workingDirectory: String,
-        plan: TerminalLaunchPlan
+        plan: TerminalLaunchPlan,
+        reuseFrontWindowIfAvailable: Bool
     ) {
         let shellCommand = "cd \(shellQuoted(workingDirectory)) && \(plan.shellCommand)"
-        let script = """
-        tell application "Terminal"
-            activate
-            do script "\(appleScriptEscaped(shellCommand))"
-        end tell
-        """
+        let script: String
+
+        if reuseFrontWindowIfAvailable {
+            script = """
+            tell application "Terminal"
+                activate
+                delay 0.4
+                if (count of windows) is 0 then
+                    do script "\(appleScriptEscaped(shellCommand))"
+                else
+                    do script "\(appleScriptEscaped(shellCommand))" in selected tab of front window
+                end if
+            end tell
+            """
+        } else {
+            script = """
+            tell application "Terminal"
+                do script "\(appleScriptEscaped(shellCommand))"
+                activate
+            end tell
+            """
+        }
 
         var error: NSDictionary?
 
@@ -177,6 +197,12 @@ enum SessionLauncher {
         } else {
             print("Opening Terminal command: \(plan.title)")
         }
+    }
+
+    private static func isTerminalRunning() -> Bool {
+        !NSRunningApplication.runningApplications(
+            withBundleIdentifier: "com.apple.Terminal"
+        ).isEmpty
     }
 
     private static func expandedPath(_ path: String) -> String {
