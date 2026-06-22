@@ -12,7 +12,7 @@ struct ProjectSessionsApp: App {
     @State private var sessionStore = SessionStore()
     @State private var terminalProcessStore = TerminalProcessStore()
     @State private var workspaceRuntimeStore = WorkspaceRuntimeStore()
-    @State private var experimentalCommandRunner = ExperimentalCommandRunner()
+    @State private var experimentalCommandRunStore = ExperimentalCommandRunStore()
     @Environment(\.openWindow) private var openWindow
 
     var body: some Scene {
@@ -21,7 +21,7 @@ struct ProjectSessionsApp: App {
                 sessionStore: sessionStore,
                 terminalProcessStore: terminalProcessStore,
                 workspaceRuntimeStore: workspaceRuntimeStore,
-                experimentalCommandRunner: experimentalCommandRunner
+                experimentalCommandRunStore: experimentalCommandRunStore
             )
         }
         .defaultSize(width: 1000, height: 650)

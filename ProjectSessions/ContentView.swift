@@ -11,7 +11,7 @@ struct ContentView: View {
     let sessionStore: SessionStore
     let terminalProcessStore: TerminalProcessStore
     let workspaceRuntimeStore: WorkspaceRuntimeStore
-    let experimentalCommandRunner: ExperimentalCommandRunner
+    let experimentalCommandRunStore: ExperimentalCommandRunStore
     @State private var selectedSessionID: ProjectSession.ID?
     
     @State private var isShowingNewSessionForm = false
@@ -141,7 +141,7 @@ struct ContentView: View {
                     workspaceRuntime: selectedSession.flatMap { workspaceRuntimeStore.runtime(for: $0) },
                     terminalProcessRecords: selectedSession.map { terminalProcessStore.records(for: $0) } ?? [],
                     terminalRunningCount: selectedSession.map { terminalProcessStore.runningCount(for: $0) } ?? 0,
-                    experimentalCommandRunner: experimentalCommandRunner,
+                    experimentalCommandRunStore: experimentalCommandRunStore,
                     onRestore: { session in
                         workspaceRuntimeStore.markStarted(session)
                         SessionLauncher.restore(session, terminalProcessStore: terminalProcessStore)
@@ -298,6 +298,6 @@ struct ContentView: View {
         sessionStore: SessionStore(),
         terminalProcessStore: TerminalProcessStore(),
         workspaceRuntimeStore: WorkspaceRuntimeStore(),
-        experimentalCommandRunner: ExperimentalCommandRunner()
+        experimentalCommandRunStore: ExperimentalCommandRunStore()
     )
 }

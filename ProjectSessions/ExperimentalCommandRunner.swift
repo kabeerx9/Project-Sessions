@@ -11,9 +11,103 @@ enum ExperimentalCommandStatus: String {
 
 @MainActor
 @Observable
-final class ExperimentalCommandRunner {
-    private(set) var title = ""
-    private(set) var command = ""
+final class ExperimentalCommandRunStore {
+    private(set) var runs: [ExperimentalCommandRun] = []
+    var selectedRunID: ExperimentalCommandRun.ID?
+
+    @ObservationIgnored private var shellEnvironment: [String: String]?
+
+    func runs(for session: ProjectSession) -> [ExperimentalCommandRun] {
+        runs.filter { $0.sessionID == session.id }
+    }
+
+    func selectedRun(for session: ProjectSession) -> ExperimentalCommandRun? {
+        let sessionRuns = runs(for: session)
+
+        if let selectedRunID,
+           let selectedRun = sessionRuns.first(where: { $0.id == selectedRunID }) {
+            return selectedRun
+        }
+
+        return sessionRuns.first
+    }
+
+    func runningCount(for session: ProjectSession) -> Int {
+        runs(for: session).filter(\.isRunning).count
+    }
+
+    func startAll(for session: ProjectSession) {
+        guard !session.repositoryPath.isEmpty else {
+            return
+        }
+
+        for command in session.commands {
+            start(command, for: session)
+        }
+    }
+
+    func start(_ command: TerminalCommand, for session: ProjectSession) {
+        guard !session.repositoryPath.isEmpty else {
+            return
+        }
+
+        if let existingRun = runs.first(where: { $0.sessionID == session.id && $0.commandID == command.id }) {
+            if existingRun.isRunning {
+                selectedRunID = existingRun.id
+                return
+            }
+
+            runs.removeAll { $0.id == existingRun.id }
+        }
+
+        let run = ExperimentalCommandRun(
+            sessionID: session.id,
+            commandID: command.id,
+            title: displayName(for: command),
+            command: command.command,
+            workingDirectory: session.repositoryPath
+        )
+
+        runs.append(run)
+        selectedRunID = run.id
+        run.start(environment: resolvedShellEnvironment())
+    }
+
+    func stop(_ run: ExperimentalCommandRun) {
+        run.stop()
+    }
+
+    func stopAll(for session: ProjectSession) {
+        for run in runs(for: session) where run.isRunning {
+            run.stop()
+        }
+    }
+
+    private func resolvedShellEnvironment() -> [String: String] {
+        if let shellEnvironment {
+            return shellEnvironment
+        }
+
+        let environment = ShellEnvironmentResolver.resolve()
+        shellEnvironment = environment
+        return environment
+    }
+
+    private func displayName(for command: TerminalCommand) -> String {
+        command.name.isEmpty ? command.command : command.name
+    }
+}
+
+@MainActor
+@Observable
+final class ExperimentalCommandRun: Identifiable {
+    let id = UUID()
+    let sessionID: ProjectSession.ID
+    let commandID: TerminalCommand.ID
+    let title: String
+    let command: String
+    let workingDirectory: String
+
     private(set) var status: ExperimentalCommandStatus = .idle
     private(set) var pid: Int32?
     private(set) var exitCode: Int32?
@@ -22,23 +116,36 @@ final class ExperimentalCommandRunner {
     @ObservationIgnored private var process: Process?
     @ObservationIgnored private var outputPipe: Pipe?
     @ObservationIgnored private var errorPipe: Pipe?
-    @ObservationIgnored private var shellEnvironment: [String: String]?
 
     var isRunning: Bool {
         status == .running
     }
 
-    func start(title: String, command: String, workingDirectory: String) {
+    init(
+        sessionID: ProjectSession.ID,
+        commandID: TerminalCommand.ID,
+        title: String,
+        command: String,
+        workingDirectory: String
+    ) {
+        self.sessionID = sessionID
+        self.commandID = commandID
+        self.title = title
+        self.command = command
+        self.workingDirectory = workingDirectory
+    }
+
+    func start(environment: [String: String]) {
         guard !isRunning else {
             return
         }
 
-        reset(title: title, command: command)
-
         let process = Process()
         let outputPipe = Pipe()
         let errorPipe = Pipe()
-        let environment = resolvedShellEnvironment()
+
+        self.outputPipe = outputPipe
+        self.errorPipe = errorPipe
 
         process.executableURL = URL(fileURLWithPath: "/bin/zsh")
         process.arguments = ["-lc", command]
@@ -86,10 +193,8 @@ final class ExperimentalCommandRunner {
         do {
             try process.run()
             self.process = process
-            self.outputPipe = outputPipe
-            self.errorPipe = errorPipe
-            self.pid = process.processIdentifier
-            self.status = .running
+            pid = process.processIdentifier
+            status = .running
             append("$ \(command)\n\n")
         } catch {
             status = .failed
@@ -105,17 +210,6 @@ final class ExperimentalCommandRunner {
 
         status = .stopped
         terminateProcessTree(process.processIdentifier)
-    }
-
-    private func reset(title: String, command: String) {
-        self.title = title
-        self.command = command
-        status = .idle
-        pid = nil
-        exitCode = nil
-        output = ""
-        closePipes()
-        process = nil
     }
 
     private func append(_ text: String) {
@@ -180,16 +274,6 @@ final class ExperimentalCommandRunner {
         return contents
             .split(separator: "\n")
             .compactMap { Int32($0.trimmingCharacters(in: .whitespacesAndNewlines)) }
-    }
-
-    private func resolvedShellEnvironment() -> [String: String] {
-        if let shellEnvironment {
-            return shellEnvironment
-        }
-
-        let environment = ShellEnvironmentResolver.resolve()
-        shellEnvironment = environment
-        return environment
     }
 
     private func expandedPath(_ path: String) -> String {

@@ -6,7 +6,7 @@ struct SessionDetailView: View {
     let workspaceRuntime: WorkspaceRuntime?
     let terminalProcessRecords: [TerminalProcessRecord]
     let terminalRunningCount: Int
-    let experimentalCommandRunner: ExperimentalCommandRunner
+    let experimentalCommandRunStore: ExperimentalCommandRunStore
     let onRestore: @MainActor (ProjectSession) -> Void
     let onLaunch: @MainActor (ProjectSession) -> Void
     let onOpenFolder: @MainActor (ProjectSession) -> Void
@@ -51,7 +51,7 @@ struct SessionDetailView: View {
     }
 
     private func header(_ session: ProjectSession) -> some View {
-        Panel {
+        return Panel {
             VStack(alignment: .leading, spacing: 18) {
                 HStack(alignment: .top, spacing: 16) {
                     VStack(alignment: .leading, spacing: 6) {
@@ -141,7 +141,7 @@ struct SessionDetailView: View {
     }
 
     private func quickActions(_ session: ProjectSession) -> some View {
-        Panel {
+        return Panel {
             VStack(alignment: .leading, spacing: 14) {
                 SectionHeader("Actions", systemImage: "bolt")
 
@@ -187,7 +187,10 @@ struct SessionDetailView: View {
     }
 
     private func nativeRunnerLab(_ session: ProjectSession) -> some View {
-        Panel {
+        let runs = experimentalCommandRunStore.runs(for: session)
+        let selectedRun = experimentalCommandRunStore.selectedRun(for: session)
+
+        return Panel {
             VStack(alignment: .leading, spacing: 14) {
                 HStack {
                     SectionHeader("Native Runner Lab", systemImage: "terminal")
@@ -195,45 +198,61 @@ struct SessionDetailView: View {
                     Spacer()
 
                     StatusPill(
-                        text: experimentalCommandRunner.status.rawValue.capitalized,
-                        color: experimentalRunnerStatusColor
+                        text: nativeRunnerStatusText(for: session),
+                        color: nativeRunnerStatusColor(for: session)
                     )
                 }
 
                 HStack(spacing: 10) {
                     Button {
-                        guard let command = session.commands.first else {
-                            return
-                        }
-
-                        experimentalCommandRunner.start(
-                            title: displayName(for: command),
-                            command: command.command,
-                            workingDirectory: session.repositoryPath
-                        )
+                        experimentalCommandRunStore.startAll(for: session)
                     } label: {
-                        Label("Run First Command", systemImage: "play.fill")
+                        Label("Run All", systemImage: "play.fill")
                     }
-                    .disabled(session.commands.isEmpty || session.repositoryPath.isEmpty || experimentalCommandRunner.isRunning)
+                    .disabled(session.commands.isEmpty || session.repositoryPath.isEmpty)
 
                     Button {
-                        experimentalCommandRunner.stop()
+                        experimentalCommandRunStore.stopAll(for: session)
                     } label: {
-                        Label("Stop", systemImage: "stop.fill")
+                        Label("Stop All", systemImage: "stop.fill")
                     }
-                    .disabled(!experimentalCommandRunner.isRunning)
+                    .disabled(experimentalCommandRunStore.runningCount(for: session) == 0)
 
                     Spacer()
 
-                    if let pid = experimentalCommandRunner.pid {
+                    if let pid = selectedRun?.pid {
                         Text("PID \(pid)")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
                 }
 
+                if !runs.isEmpty {
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 8) {
+                            ForEach(runs) { run in
+                                Button {
+                                    experimentalCommandRunStore.selectedRunID = run.id
+                                } label: {
+                                    HStack(spacing: 6) {
+                                        Circle()
+                                            .fill(statusColor(for: run.status))
+                                            .frame(width: 7, height: 7)
+
+                                        Text(run.title)
+                                            .lineLimit(1)
+                                    }
+                                }
+                                .buttonStyle(.bordered)
+                                .controlSize(.small)
+                                .tint(run.id == selectedRun?.id ? WiseColors.primary : WiseColors.mute)
+                            }
+                        }
+                    }
+                }
+
                 ScrollView {
-                    Text(experimentalCommandRunner.output.isEmpty ? "No output yet." : experimentalCommandRunner.output)
+                    Text(selectedRun?.output.isEmpty == false ? selectedRun?.output ?? "" : "No output yet.")
                         .font(.system(size: 12, design: .monospaced))
                         .foregroundStyle(.primary)
                         .textSelection(.enabled)
@@ -413,8 +432,27 @@ struct SessionDetailView: View {
         }
     }
 
-    private var experimentalRunnerStatusColor: Color {
-        switch experimentalCommandRunner.status {
+    private func nativeRunnerStatusText(for session: ProjectSession) -> String {
+        let runningCount = experimentalCommandRunStore.runningCount(for: session)
+        let runCount = experimentalCommandRunStore.runs(for: session).count
+
+        if runningCount > 0 {
+            return "\(runningCount) Running"
+        }
+
+        if runCount > 0 {
+            return "Stopped"
+        }
+
+        return "Idle"
+    }
+
+    private func nativeRunnerStatusColor(for session: ProjectSession) -> Color {
+        experimentalCommandRunStore.runningCount(for: session) > 0 ? WiseColors.positive : WiseColors.mute
+    }
+
+    private func statusColor(for status: ExperimentalCommandStatus) -> Color {
+        switch status {
         case .idle:
             WiseColors.mute
         case .running:
