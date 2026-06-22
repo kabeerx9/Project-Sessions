@@ -3,22 +3,12 @@ import SwiftUI
 struct SessionSidebarView: View {
     let sessions: [ProjectSession]
     @Binding var selectedSessionID: ProjectSession.ID?
-    let onCreateSession: () -> Void
     let onDeleteSessions: (IndexSet) -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Text("Project Sessions")
-                    .font(.headline)
-
-                Spacer()
-
-                Button("Create") {
-                    onCreateSession()
-                }
-                .keyboardShortcut("n", modifiers: .command)
-            }
+            Text("Project Sessions")
+                .font(.headline)
             .padding([.horizontal, .top])
 
             if sessions.isEmpty {
@@ -72,7 +62,6 @@ struct SessionSidebarView: View {
             )
         ],
         selectedSessionID: .constant(nil),
-        onCreateSession: {},
         onDeleteSessions: { _ in }
     )
 }

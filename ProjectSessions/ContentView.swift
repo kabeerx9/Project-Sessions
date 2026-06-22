@@ -62,7 +62,7 @@ struct ContentView: View {
     @State private var editSessionCommands: [String] = []
     @State private var editSessionCommandDraft = ""
     
-    @State private var sessionToDelete: ProjectSession?
+    @State private var sessionsToDelete: [ProjectSession] = []
 
     private func chooseRepositoryPathForNewSession() {
         guard let path = chooseRepositoryPath() else {
@@ -76,19 +76,13 @@ struct ContentView: View {
         sessions.first { $0.id == selectedSessionID }
     }
 
-    private func deleteSession(_ session: ProjectSession) {
-        sessions.removeAll { $0.id == session.id }
-        
-        if selectedSessionID == session.id {
-            selectedSessionID = nil
-        }
-        
-        saveSessions()
+    private func confirmDeleteSessions(at offsets: IndexSet) {
+        sessionsToDelete = offsets.map { sessions[$0] }
     }
-    
-    private func deleteSessions(at offsets: IndexSet) {
-        let deletedIDs = offsets.map { sessions[$0].id }
-        sessions.remove(atOffsets: offsets)
+
+    private func deleteSessions(_ sessionsToDelete: [ProjectSession]) {
+        let deletedIDs = sessionsToDelete.map(\.id)
+        sessions.removeAll { deletedIDs.contains($0.id) }
         
         if let selectedSessionID, deletedIDs.contains(selectedSessionID) {
             self.selectedSessionID = nil
@@ -297,10 +291,7 @@ struct ContentView: View {
             SessionSidebarView(
                 sessions: sessions,
                 selectedSessionID: $selectedSessionID,
-                onCreateSession: {
-                    isShowingNewSessionForm = true
-                },
-                onDeleteSessions: deleteSessions
+                onDeleteSessions: confirmDeleteSessions
             )
         } detail: {
             SessionDetailView(
@@ -311,7 +302,7 @@ struct ContentView: View {
                 onOpenInCursor: openRepositoryInCursor,
                 onEdit: startEditing,
                 onDelete: { session in
-                    sessionToDelete = session
+                    sessionsToDelete = [session]
                 }
             )
         }
@@ -324,6 +315,7 @@ struct ContentView: View {
             } label: {
                 Label("New Session", systemImage: "plus")
             }
+            .keyboardShortcut("n", modifiers: .command)
         }
         .sheet(isPresented: $isShowingNewSessionForm) {
             SessionFormView(
@@ -383,30 +375,41 @@ struct ContentView: View {
             )
         }
         .alert(
-            "Delete Session?",
+            deleteAlertTitle,
             isPresented: Binding(
                 get: {
-                    sessionToDelete != nil
+                    !sessionsToDelete.isEmpty
                 },
                 set: { isPresented in
                     if !isPresented {
-                        sessionToDelete = nil
+                        sessionsToDelete = []
                     }
                 }
-            ),
-            presenting: sessionToDelete
-        ) { session in
+            )
+        ) {
             Button("Cancel", role: .cancel) {
-                sessionToDelete = nil
+                sessionsToDelete = []
             }
 
             Button("Delete", role: .destructive) {
-                deleteSession(session)
-                sessionToDelete = nil
+                deleteSessions(sessionsToDelete)
+                sessionsToDelete = []
             }
-        } message: { session in
-            Text("This will delete \(session.name).")
+        } message: {
+            Text(deleteAlertMessage)
         }
+    }
+
+    private var deleteAlertTitle: String {
+        sessionsToDelete.count == 1 ? "Delete Session?" : "Delete Sessions?"
+    }
+
+    private var deleteAlertMessage: String {
+        if let session = sessionsToDelete.first, sessionsToDelete.count == 1 {
+            return "This will delete \(session.name)."
+        }
+
+        return "This will delete \(sessionsToDelete.count) sessions."
     }
 }
 #Preview {
