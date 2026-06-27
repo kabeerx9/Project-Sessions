@@ -140,7 +140,7 @@ struct ContentView: View {
 
     private func shutdownWorkspace(for session: ProjectSession) {
         stopAllCommands(for: session)
-        _ = TerminalLauncher.closeTerminals(for: session.id)
+        _ = TerminalLauncher.closeTerminals(ttys: commandRunStore.terminalTTYs(for: session))
         workspaceRuntimeStore.markStopped(session)
     }
 

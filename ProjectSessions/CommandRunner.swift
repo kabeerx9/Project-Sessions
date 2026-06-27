@@ -46,6 +46,10 @@ final class CommandRunStore {
         runs(for: session).filter(\.isRunning).count
     }
 
+    func terminalTTYs(for session: ProjectSession) -> [String] {
+        runs(for: session).compactMap(\.terminalTTY)
+    }
+
     func startAll(for session: ProjectSession) {
         guard !session.repositoryPath.isEmpty else {
             return

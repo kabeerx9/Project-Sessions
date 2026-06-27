@@ -15,9 +15,17 @@ enum TerminalLauncher {
         "\(titlePrefix(for: sessionID)) [\(commandID.uuidString)] \(displayTitle)"
     }
 
-    static func closeTerminals(for sessionID: ProjectSession.ID) -> Bool {
+    static func closeTerminals(ttys: [String]) -> Bool {
+        let normalizedTTYs = ttys
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+
+        guard !normalizedTTYs.isEmpty else {
+            return true
+        }
+
         let script = """
-        set targetPrefix to \(appleScriptQuoted(titlePrefix(for: sessionID)))
+        set targetTTYs to {\(appleScriptList(normalizedTTYs))}
 
         if application "Terminal" is running then
             tell application "Terminal"
@@ -25,13 +33,13 @@ enum TerminalLauncher {
                     set terminalWindow to window windowIndex
                     repeat with tabIndex from (count of tabs of terminalWindow) to 1 by -1
                         set terminalTab to tab tabIndex of terminalWindow
-                        set tabTitle to ""
+                        set tabTTY to ""
 
                         try
-                            set tabTitle to custom title of terminalTab as text
+                            set tabTTY to tty of terminalTab as text
                         end try
 
-                        if tabTitle starts with targetPrefix then
+                        if targetTTYs contains tabTTY then
                             close terminalTab saving no
                         end if
                     end repeat
@@ -122,6 +130,10 @@ enum TerminalLauncher {
             .replacingOccurrences(of: "\"", with: "\\\"")
 
         return "\"\(escapedValue)\""
+    }
+
+    private static func appleScriptList(_ values: [String]) -> String {
+        values.map(appleScriptQuoted).joined(separator: ", ")
     }
 
     private static func showLaunchAlert(title: String, message: String) {
