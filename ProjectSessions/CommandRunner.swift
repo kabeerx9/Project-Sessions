@@ -15,7 +15,12 @@ final class CommandRunStore {
     private(set) var runs: [CommandRun] = []
     var selectedRunID: CommandRun.ID?
 
+    @ObservationIgnored private let processRegistry: CommandProcessRegistry
     @ObservationIgnored private var shellEnvironment: [String: String]?
+
+    init(processRegistry: CommandProcessRegistry) {
+        self.processRegistry = processRegistry
+    }
 
     func runs(for session: ProjectSession) -> [CommandRun] {
         runs.filter { $0.sessionID == session.id }
@@ -69,7 +74,8 @@ final class CommandRunStore {
             commandID: command.id,
             title: displayName(for: command),
             command: command.command,
-            workingDirectory: session.repositoryPath
+            workingDirectory: session.repositoryPath,
+            processRegistry: processRegistry
         )
 
         runs.append(run)
@@ -128,6 +134,7 @@ final class CommandRun: Identifiable {
     let title: String
     let command: String
     let workingDirectory: String
+    private let processRegistry: CommandProcessRegistry
 
     private(set) var status: CommandRunStatus = .idle
     private(set) var pid: Int32?
@@ -147,13 +154,15 @@ final class CommandRun: Identifiable {
         commandID: WorkspaceCommand.ID,
         title: String,
         command: String,
-        workingDirectory: String
+        workingDirectory: String,
+        processRegistry: CommandProcessRegistry
     ) {
         self.sessionID = sessionID
         self.commandID = commandID
         self.title = title
         self.command = command
         self.workingDirectory = workingDirectory
+        self.processRegistry = processRegistry
     }
 
     func start(environment: [String: String]) {
@@ -216,6 +225,13 @@ final class CommandRun: Identifiable {
             self.process = process
             pid = process.processIdentifier
             status = .running
+            processRegistry.register(
+                sessionID: sessionID,
+                commandID: commandID,
+                pid: process.processIdentifier,
+                command: command,
+                workingDirectory: workingDirectory
+            )
             append("$ \(command)\n\n")
         } catch {
             status = .failed
@@ -230,7 +246,7 @@ final class CommandRun: Identifiable {
         }
 
         status = .stopped
-        terminateProcessTree(process.processIdentifier)
+        ProcessTree.terminate(process.processIdentifier)
     }
 
     func clearOutput() {
@@ -253,6 +269,7 @@ final class CommandRun: Identifiable {
         }
 
         append("\n[Project Sessions] command finished with exit status \(exitCode)\n")
+        processRegistry.unregister(pid: pid)
         closePipes()
         process = nil
     }
@@ -262,43 +279,6 @@ final class CommandRun: Identifiable {
         errorPipe?.fileHandleForReading.readabilityHandler = nil
         outputPipe = nil
         errorPipe = nil
-    }
-
-    private func terminateProcessTree(_ pid: Int32) {
-        for childPID in childPIDs(of: pid) {
-            terminateProcessTree(childPID)
-        }
-
-        kill(pid, SIGTERM)
-
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-            if kill(pid, 0) == 0 {
-                kill(pid, SIGKILL)
-            }
-        }
-    }
-
-    private func childPIDs(of pid: Int32) -> [Int32] {
-        let process = Process()
-        let output = Pipe()
-
-        process.executableURL = URL(fileURLWithPath: "/usr/bin/pgrep")
-        process.arguments = ["-P", String(pid)]
-        process.standardOutput = output
-
-        do {
-            try process.run()
-            process.waitUntilExit()
-        } catch {
-            return []
-        }
-
-        let data = output.fileHandleForReading.readDataToEndOfFile()
-        let contents = String(data: data, encoding: .utf8) ?? ""
-
-        return contents
-            .split(separator: "\n")
-            .compactMap { Int32($0.trimmingCharacters(in: .whitespacesAndNewlines)) }
     }
 
     private func expandedPath(_ path: String) -> String {

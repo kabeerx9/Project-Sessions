@@ -43,6 +43,22 @@ class WorkspaceRuntimeStore {
         print("[Project Sessions Debug] Workspace stopped session=\(session.name)")
     }
 
+    func markAllStoppedOnLaunch() {
+        let now = Date()
+        var didUpdate = false
+
+        for index in runtimes.indices where runtimes[index].status == .active {
+            runtimes[index].status = .stopped
+            runtimes[index].stoppedAt = now
+            didUpdate = true
+        }
+
+        if didUpdate {
+            saveRuntimes()
+            print("[Project Sessions Debug] Cleared active workspace state on launch")
+        }
+    }
+
     func removeRuntime(for session: ProjectSession) {
         runtimes.removeAll { $0.sessionID == session.id }
         saveRuntimes()

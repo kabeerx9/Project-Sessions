@@ -339,9 +339,11 @@ struct ContentView: View {
 }
 
 #Preview {
+    let commandProcessRegistry = CommandProcessRegistry()
+
     ContentView(
         sessionStore: SessionStore(),
         workspaceRuntimeStore: WorkspaceRuntimeStore(),
-        commandRunStore: CommandRunStore()
+        commandRunStore: CommandRunStore(processRegistry: commandProcessRegistry)
     )
 }

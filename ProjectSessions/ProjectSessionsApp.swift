@@ -11,8 +11,25 @@ import SwiftUI
 struct ProjectSessionsApp: App {
     @State private var sessionStore = SessionStore()
     @State private var workspaceRuntimeStore = WorkspaceRuntimeStore()
-    @State private var commandRunStore = CommandRunStore()
+    @State private var commandRunStore: CommandRunStore
+    @State private var didRunLaunchCleanup = false
+    private let commandProcessRegistry: CommandProcessRegistry
+    private let terminationObserver: NSObjectProtocol
     @Environment(\.openWindow) private var openWindow
+
+    init() {
+        let commandProcessRegistry = CommandProcessRegistry()
+
+        self.commandProcessRegistry = commandProcessRegistry
+        terminationObserver = NotificationCenter.default.addObserver(
+            forName: NSApplication.willTerminateNotification,
+            object: nil,
+            queue: .main
+        ) { _ in
+            commandProcessRegistry.stopAllRegisteredProcesses(forceImmediately: true)
+        }
+        _commandRunStore = State(initialValue: CommandRunStore(processRegistry: commandProcessRegistry))
+    }
 
     var body: some Scene {
         WindowGroup(id: "main") {
@@ -21,6 +38,15 @@ struct ProjectSessionsApp: App {
                 workspaceRuntimeStore: workspaceRuntimeStore,
                 commandRunStore: commandRunStore
             )
+            .onAppear {
+                guard !didRunLaunchCleanup else {
+                    return
+                }
+
+                commandProcessRegistry.sweepOrphanedProcessesOnLaunch()
+                workspaceRuntimeStore.markAllStoppedOnLaunch()
+                didRunLaunchCleanup = true
+            }
         }
         .defaultSize(width: 1000, height: 650)
 
