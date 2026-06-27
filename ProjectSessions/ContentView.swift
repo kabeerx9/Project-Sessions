@@ -138,6 +138,12 @@ struct ContentView: View {
         commandRunStore.stopAll(for: session)
     }
 
+    private func shutdownWorkspace(for session: ProjectSession) {
+        stopAllCommands(for: session)
+        _ = TerminalLauncher.closeTerminals(for: session.id)
+        workspaceRuntimeStore.markStopped(session)
+    }
+
     private func runCommand(_ command: WorkspaceCommand, for session: ProjectSession) {
         commandRunStore.start(command, for: session)
 
@@ -198,8 +204,7 @@ struct ContentView: View {
                         SessionLauncher.openRepositoryInCursor(session)
                     },
                     onShutdownWorkspace: { session in
-                        stopAllCommands(for: session)
-                        workspaceRuntimeStore.markStopped(session)
+                        shutdownWorkspace(for: session)
                     },
                     onRunAllCommands: { session in
                         runAllCommands(for: session)

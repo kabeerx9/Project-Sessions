@@ -2,6 +2,37 @@ import AppKit
 import Foundation
 
 enum TerminalLauncher {
+    static func title(
+        sessionID: ProjectSession.ID,
+        commandID: WorkspaceCommand.ID,
+        displayTitle: String
+    ) -> String {
+        "\(titlePrefix(for: sessionID)) [\(commandID.uuidString)] \(displayTitle)"
+    }
+
+    static func closeTerminals(for sessionID: ProjectSession.ID) -> Bool {
+        let script = """
+        if application "Terminal" is running then
+            tell application "Terminal"
+                repeat with windowIndex from (count of windows) to 1 by -1
+                    set terminalWindow to window windowIndex
+                    repeat with tabIndex from (count of tabs of terminalWindow) to 1 by -1
+                        set terminalTab to tab tabIndex of terminalWindow
+                        if custom title of terminalTab starts with \(appleScriptQuoted(titlePrefix(for: sessionID))) then
+                            close terminalTab
+                        end if
+                    end repeat
+                end repeat
+            end tell
+        end if
+        """
+
+        return runAppleScript(
+            script,
+            alertTitle: "Could Not Close Terminal Tabs"
+        )
+    }
+
     static func openTerminal(at workingDirectory: String, title: String) -> Bool {
         let terminalCommand = "cd \(shellQuoted(expandedPath(workingDirectory)))"
         let script = """
@@ -15,14 +46,21 @@ enum TerminalLauncher {
         return runAppleScript(script)
     }
 
-    private static func runAppleScript(_ script: String) -> Bool {
+    private static func titlePrefix(for sessionID: ProjectSession.ID) -> String {
+        "Project Sessions [\(sessionID.uuidString)]"
+    }
+
+    private static func runAppleScript(
+        _ script: String,
+        alertTitle: String = "Could Not Open Terminal"
+    ) -> Bool {
         var error: NSDictionary?
         let appleScript = NSAppleScript(source: script)
         appleScript?.executeAndReturnError(&error)
 
         if let error {
             showLaunchAlert(
-                title: "Could Not Open Terminal",
+                title: alertTitle,
                 message: error.description
             )
             return false

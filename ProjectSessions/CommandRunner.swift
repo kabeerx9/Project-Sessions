@@ -283,7 +283,11 @@ final class CommandRun: Identifiable {
     }
 
     private var terminalTitle: String {
-        "Project Sessions [\(sessionID.uuidString)] [\(commandID.uuidString)] \(title)"
+        TerminalLauncher.title(
+            sessionID: sessionID,
+            commandID: commandID,
+            displayTitle: title
+        )
     }
 
     private func append(_ text: String) {
