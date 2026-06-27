@@ -484,7 +484,7 @@ struct SessionDetailView: View {
             WiseColors.negative
         case .stopped:
             WiseColors.warningDeep
-        case .terminalPending:
+        case .terminalOpened:
             WiseColors.warningDeep
         }
     }
@@ -509,8 +509,8 @@ struct SessionDetailView: View {
             return "Failed"
         case .stopped:
             return "Stopped"
-        case .terminalPending:
-            return "Terminal Pending"
+        case .terminalOpened:
+            return "Terminal Opened"
         }
     }
 
