@@ -11,6 +11,7 @@ struct SessionFormView: View {
     @Binding var commands: [WorkspaceCommand]
     @Binding var commandNameDraft: String
     @Binding var commandDraft: String
+    @Binding var commandLaunchModeDraft: WorkspaceCommandLaunchMode
     let onChooseFolder: () -> Void
     let onCancel: () -> Void
     let onSave: () -> Void
@@ -207,6 +208,12 @@ struct SessionFormView: View {
                 TextField("Command, for example pnpm dev", text: $commandDraft)
                     .font(.system(.body, design: .monospaced))
 
+                Picker("Launch in", selection: $commandLaunchModeDraft) {
+                    Text("App Console").tag(WorkspaceCommandLaunchMode.appConsole)
+                    Text("Interactive Terminal").tag(WorkspaceCommandLaunchMode.interactiveTerminal)
+                }
+                .pickerStyle(.segmented)
+
                 HStack {
                     Spacer()
 
@@ -225,7 +232,7 @@ struct SessionFormView: View {
                         ForEach(commands) { command in
                             RemovableRow(
                                 title: command.name.isEmpty ? command.command : command.name,
-                                subtitle: command.name.isEmpty ? nil : command.command,
+                                subtitle: commandSubtitle(command),
                                 systemImage: "terminal"
                             ) {
                                 commands.removeAll { $0.id == command.id }
@@ -283,11 +290,13 @@ struct SessionFormView: View {
         commands.append(
             WorkspaceCommand(
                 name: trimmedCommandNameDraft,
-                command: trimmedCommandDraft
+                command: trimmedCommandDraft,
+                launchMode: commandLaunchModeDraft
             )
         )
         commandNameDraft = ""
         commandDraft = ""
+        commandLaunchModeDraft = .appConsole
     }
 
     private func saveForm() {
@@ -313,11 +322,22 @@ struct SessionFormView: View {
             return WorkspaceCommand(
                 id: command.id,
                 name: trimmedName,
-                command: trimmedCommand
+                command: trimmedCommand,
+                launchMode: command.launchMode
             )
         }
 
         onSave()
+    }
+
+    private func commandSubtitle(_ command: WorkspaceCommand) -> String? {
+        let modeLabel = command.launchMode == .appConsole ? "App Console" : "Interactive Terminal"
+
+        if command.name.isEmpty {
+            return modeLabel
+        }
+
+        return "\(command.command) - \(modeLabel)"
     }
 
     private var trimmedName: String {
@@ -508,6 +528,7 @@ private struct RemovableRow: View {
         ]),
         commandNameDraft: .constant(""),
         commandDraft: .constant(""),
+        commandLaunchModeDraft: .constant(.appConsole),
         onChooseFolder: {},
         onCancel: {},
         onSave: {}

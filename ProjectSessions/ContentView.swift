@@ -25,6 +25,7 @@ struct ContentView: View {
     @State private var newSessionCommands: [WorkspaceCommand] = []
     @State private var newSessionCommandNameDraft = ""
     @State private var newSessionCommandDraft = ""
+    @State private var newSessionCommandLaunchModeDraft = WorkspaceCommandLaunchMode.appConsole
     
     
     @State private var editingSession: ProjectSession?
@@ -37,6 +38,7 @@ struct ContentView: View {
     @State private var editSessionCommands: [WorkspaceCommand] = []
     @State private var editSessionCommandNameDraft = ""
     @State private var editSessionCommandDraft = ""
+    @State private var editSessionCommandLaunchModeDraft = WorkspaceCommandLaunchMode.appConsole
     
     @State private var sessionsToDelete: [ProjectSession] = []
 
@@ -80,6 +82,7 @@ struct ContentView: View {
         newSessionCommands = []
         newSessionCommandNameDraft = ""
         newSessionCommandDraft = ""
+        newSessionCommandLaunchModeDraft = .appConsole
     }
 
     private func startEditing(_ session: ProjectSession) {
@@ -93,6 +96,7 @@ struct ContentView: View {
         editSessionCommands = session.commands
         editSessionCommandNameDraft = ""
         editSessionCommandDraft = ""
+        editSessionCommandLaunchModeDraft = .appConsole
     }
 
     private func chooseRepositoryPathForEditSession() {
@@ -247,6 +251,7 @@ struct ContentView: View {
                     commands: $newSessionCommands,
                     commandNameDraft: $newSessionCommandNameDraft,
                     commandDraft: $newSessionCommandDraft,
+                    commandLaunchModeDraft: $newSessionCommandLaunchModeDraft,
                     onChooseFolder: {
                         chooseRepositoryPathForNewSession()
                     },
@@ -284,6 +289,7 @@ struct ContentView: View {
                     commands: $editSessionCommands,
                     commandNameDraft: $editSessionCommandNameDraft,
                     commandDraft: $editSessionCommandDraft,
+                    commandLaunchModeDraft: $editSessionCommandLaunchModeDraft,
                     onChooseFolder: {
                         chooseRepositoryPathForEditSession()
                     },
