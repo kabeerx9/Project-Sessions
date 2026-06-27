@@ -145,6 +145,7 @@ final class CommandRun: Identifiable {
 
     private(set) var status: CommandRunStatus = .idle
     private(set) var pid: Int32?
+    private(set) var terminalTTY: String?
     private(set) var exitCode: Int32?
     private(set) var output = ""
 
@@ -265,17 +266,19 @@ final class CommandRun: Identifiable {
             return
         }
 
-        let didOpenTerminal = TerminalLauncher.openTerminal(
+        let result = TerminalLauncher.openTerminal(
             at: workingDirectory,
             title: terminalTitle
         )
-        status = didOpenTerminal ? .terminalOpened : .failed
+        terminalTTY = result.tty
+        status = result.didOpen ? .terminalOpened : .failed
         append(
             """
             $ \(command)
 
             [Project Sessions] Opened Terminal.app at \(workingDirectory).
             [Project Sessions] Terminal title: \(terminalTitle)
+            [Project Sessions] Terminal TTY: \(terminalTTY ?? "Unknown")
             [Project Sessions] Running the saved command in Terminal.app is the next step.
 
             """
