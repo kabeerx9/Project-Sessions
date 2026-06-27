@@ -7,6 +7,7 @@ enum CommandRunStatus: String {
     case exited
     case failed
     case stopped
+    case terminalPending
 }
 
 @MainActor
@@ -80,6 +81,12 @@ final class CommandRunStore {
 
         runs.append(run)
         selectedRunID = run.id
+
+        if command.launchMode == .interactiveTerminal {
+            run.markInteractiveTerminalPlaceholder()
+            return
+        }
+
         run.start(environment: resolvedShellEnvironment())
     }
 
@@ -251,6 +258,23 @@ final class CommandRun: Identifiable {
 
     func clearOutput() {
         output = ""
+    }
+
+    func markInteractiveTerminalPlaceholder() {
+        guard !isRunning else {
+            return
+        }
+
+        status = .terminalPending
+        append(
+            """
+            $ \(command)
+
+            [Project Sessions] This command is set to open in Interactive Terminal.
+            [Project Sessions] Terminal.app launch is the next step, so no process has been started yet.
+
+            """
+        )
     }
 
     private func append(_ text: String) {
