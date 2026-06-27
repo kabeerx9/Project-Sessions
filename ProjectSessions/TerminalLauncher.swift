@@ -2,10 +2,12 @@ import AppKit
 import Foundation
 
 enum TerminalLauncher {
-    static func openTerminal(at workingDirectory: String) -> Bool {
+    static func openTerminal(at workingDirectory: String, title: String) -> Bool {
+        let terminalCommand = "cd \(shellQuoted(expandedPath(workingDirectory)))"
         let script = """
         tell application "Terminal"
-            do script "cd \(shellQuoted(expandedPath(workingDirectory)))"
+            set newTab to do script \(appleScriptQuoted(terminalCommand))
+            set custom title of newTab to \(appleScriptQuoted(title))
             activate
         end tell
         """
@@ -46,6 +48,14 @@ enum TerminalLauncher {
 
     private static func shellQuoted(_ value: String) -> String {
         "'\(value.replacingOccurrences(of: "'", with: "'\\''"))'"
+    }
+
+    private static func appleScriptQuoted(_ value: String) -> String {
+        let escapedValue = value
+            .replacingOccurrences(of: "\\", with: "\\\\")
+            .replacingOccurrences(of: "\"", with: "\\\"")
+
+        return "\"\(escapedValue)\""
     }
 
     private static func showLaunchAlert(title: String, message: String) {

@@ -265,17 +265,25 @@ final class CommandRun: Identifiable {
             return
         }
 
-        let didOpenTerminal = TerminalLauncher.openTerminal(at: workingDirectory)
+        let didOpenTerminal = TerminalLauncher.openTerminal(
+            at: workingDirectory,
+            title: terminalTitle
+        )
         status = didOpenTerminal ? .terminalOpened : .failed
         append(
             """
             $ \(command)
 
             [Project Sessions] Opened Terminal.app at \(workingDirectory).
+            [Project Sessions] Terminal title: \(terminalTitle)
             [Project Sessions] Running the saved command in Terminal.app is the next step.
 
             """
         )
+    }
+
+    private var terminalTitle: String {
+        "Project Sessions [\(sessionID.uuidString)] [\(commandID.uuidString)] \(title)"
     }
 
     private func append(_ text: String) {
