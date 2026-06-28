@@ -31,6 +31,8 @@ enum TerminalLauncher {
             tell application "Terminal"
                 repeat with windowIndex from (count of windows) to 1 by -1
                     set terminalWindow to window windowIndex
+                    set shouldCloseWindow to false
+
                     repeat with tabIndex from (count of tabs of terminalWindow) to 1 by -1
                         set terminalTab to tab tabIndex of terminalWindow
                         set tabTTY to ""
@@ -40,9 +42,15 @@ enum TerminalLauncher {
                         end try
 
                         if targetTTYs contains tabTTY then
-                            close terminalTab saving no
+                            if (count of tabs of terminalWindow) is 1 then
+                                set shouldCloseWindow to true
+                            end if
                         end if
                     end repeat
+
+                    if shouldCloseWindow then
+                        close terminalWindow saving no
+                    end if
                 end repeat
             end tell
         end if
@@ -133,7 +141,7 @@ enum TerminalLauncher {
     }
 
     private static func appleScriptList(_ values: [String]) -> String {
-        values.map(appleScriptQuoted).joined(separator: ", ")
+        values.map { appleScriptQuoted($0) }.joined(separator: ", ")
     }
 
     private static func showLaunchAlert(title: String, message: String) {
